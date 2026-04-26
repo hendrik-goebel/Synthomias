@@ -1,5 +1,7 @@
 # Lessons Learned
 
+- When a production HTML template already includes the app bundle manually, disable `HtmlWebpackPlugin` auto-injection (or remove the manual tag) so the same entry chunk is not loaded twice; duplicate bootstrap scripts can silently double-render UI and double-bind events only in built output.
+
 - When one modulation source grows into multiple independent LFOs, keep the original slot's ids/keys as backward-compatible aliases and generate the extra slot config from shared metadata; this avoids duplicating UI/controller logic and keeps old seeds/tests working while new slots are added.
 
 - When expanding a shared discrete target list like `LFO_TARGET_OPTIONS`, append new targets instead of reordering existing ones so saved numeric indices stay compatible, and apply the new modulation at the per-note derived-value boundary rather than mutating shared live state for already-running voices.

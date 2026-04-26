@@ -1,3 +1,25 @@
+# Task: Fix Production Build Duplicating Mixer Instruments
+
+## Plan
+- [x] Reproduce the production-only duplication by inspecting the built `dist/index.html` and confirming whether the app bundle is loaded twice.
+- [x] Trace the mixer bootstrap/render path in `index.html`, `webpack.config.prod.js`, `js/app.js`, and `js/ui.js` to isolate the true root cause instead of masking the symptom.
+- [x] Apply the smallest fix so the production build loads the app exactly once, then add a defensive mixer-render guard only if still needed.
+- [x] Verify with a fresh `npm run build`, inspect the generated HTML for duplicate script tags, and run targeted checks to confirm the mixer renders only channels `1` through `8` once.
+
+## Progress Notes
+- Identified the real production-only root cause before code changes: `index.html` already includes `js/app.js`, while `HtmlWebpackPlugin` in `webpack.config.prod.js` was auto-injecting the same compiled `app` bundle again.
+- Confirmed the bug directly from built output: the pre-fix `dist/index.html` contained both `<script defer="defer" src="./js/app.js"></script>` and `<script src="js/app.js"></script>`, which bootstrapped the app twice and caused the mixer to render duplicate instruments.
+- Fixed the issue in `webpack.config.prod.js` by setting `HtmlWebpackPlugin({ inject: false })`, preserving the existing manual script tag used by the static/dev template flow while preventing the production duplicate bootstrap.
+- Added `tasks/production-single-bootstrap-test.mjs` to assert that `dist/index.html` contains exactly one app bootstrap script after a production build.
+
+## Review
+- `get_errors` reported no errors in `tasks/todo.md`, `webpack.config.prod.js`, and `tasks/production-single-bootstrap-test.mjs` after the changes.
+- `npm run build` first reproduced the issue and showed two `app.js` script tags in `dist/index.html`; after the fix, a fresh `npm run build` completed successfully and the built HTML contained exactly one `<script src="js/app.js"></script>`.
+- `node --experimental-default-type=module tasks/production-single-bootstrap-test.mjs` passed.
+- `node --experimental-default-type=module tasks/initial-startup-scene-test.mjs` passed.
+
+---
+
 # Task: Scope LFOs And Parameter Controls To The Current Instrument
 
 ## Plan
