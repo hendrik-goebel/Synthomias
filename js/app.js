@@ -1,4 +1,5 @@
 import { AudioStateController } from "./audio-state-controller.js";
+import "./note-probabilities.js";
 import {
   bindControllerEvents,
   bindControls,
@@ -38,4 +39,3 @@ audioStateController.initialize({ seed: getStateSeedFromLocation() });
 audioStateController.initializeMidi();
 
 window.audioStateController = audioStateController;
-

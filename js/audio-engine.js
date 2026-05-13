@@ -34,6 +34,7 @@ import {
   initializeReverbEffectGraph,
 } from "./effects/reverb-effect.js";
 import { sendMidiNoteForPreset } from "./midi-engine.js";
+import { getNoteProbabilitiesForInstrument } from "./note-probabilities.js";
 import { getInstrumentPattern, getInstrumentPatternNoteIds } from "./patterns.js";
 import { getInstrumentParams, getPlayablePresetIds } from "./presets.js";
 import { state } from "./state.js";
@@ -712,26 +713,45 @@ export function scheduleInstrumentStackNote(time, layerCount, stepIndex = state.
       continue;
     }
 
-    const midiNoteNumber = noteId ? getMidiNoteNumberFromNoteId(noteId) : null;
-    const shiftedMidiNoteNumber = getTransposedMidiNoteNumber(midiNoteNumber, voiceParams, time);
-    if (Number.isInteger(shiftedMidiNoteNumber)) {
-      sendMidiNoteForPreset(presetId, shiftedMidiNoteNumber, {
-        timeSeconds: time,
-        durationSeconds: getNoteDuration(noteLength),
-        velocity: 96,
-      });
+    // --- Note probability logic ---
+    let shouldPlay = true;
+    if (noteId) {
+      // noteId is like "note-C4"; extract note name (C, D#, etc.)
+      const noteNameMatch = noteId.match(/^note-([A-G]#?)/i);
+      const noteName = noteNameMatch ? noteNameMatch[1].toUpperCase() : null;
+      const noteProbabilities = getNoteProbabilitiesForInstrument(presetId);
+      const probability = noteName && noteProbabilities[noteName] !== undefined ? noteProbabilities[noteName] : 1;
+      if (probability >= 1) {
+        shouldPlay = true;
+      } else if (probability <= 0) {
+        shouldPlay = false;
+      } else {
+        shouldPlay = Math.random() < probability;
+      }
     }
 
-    scheduleNote(
-      layerFrequency,
-      time,
-      voiceParams,
-      currentLayerIndex,
-      layerCount,
-      presetId,
-      noteLength,
-      MIDI_VELOCITY_MAX,
-    );
+    if (shouldPlay) {
+      const midiNoteNumber = noteId ? getMidiNoteNumberFromNoteId(noteId) : null;
+      const shiftedMidiNoteNumber = getTransposedMidiNoteNumber(midiNoteNumber, voiceParams, time);
+      if (Number.isInteger(shiftedMidiNoteNumber)) {
+        sendMidiNoteForPreset(presetId, shiftedMidiNoteNumber, {
+          timeSeconds: time,
+          durationSeconds: getNoteDuration(noteLength),
+          velocity: 96,
+        });
+      }
+
+      scheduleNote(
+        layerFrequency,
+        time,
+        voiceParams,
+        currentLayerIndex,
+        layerCount,
+        presetId,
+        noteLength,
+        MIDI_VELOCITY_MAX,
+      );
+    }
   }
 }
 

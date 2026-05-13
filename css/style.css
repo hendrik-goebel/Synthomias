@@ -1,83 +1,136 @@
-/*! HTML5 Boilerplate v9.0.1 | MIT License | https://html5boilerplate.com/ */
-
-/* main.css 3.0.0 | MIT License | https://github.com/h5bp/main.css#readme */
-/*
- * What follows is the result of much research on cross-browser styling.
- * Credit left inline and big thanks to Nicolas Gallagher, Jonathan Neal,
- * Kroc Camen, and the H5BP dev community and team.
- */
-
-/* ==========================================================================
-   Base styles: opinionated defaults
-   ========================================================================== */
-
-html {
-  color: #222;
-  font-size: 1em;
-  line-height: 1.4;
+/* Note Probabilities Section */
+.note-probabilities-section {
+  margin: 1.2rem 0 1.5rem 0;
+  padding: 1rem 1.2rem 1.2rem 1.2rem;
+  background: #181f2e;
+  border: 1px solid #374151;
+  border-radius: 0.7rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.13);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/*
- * Remove text-shadow in selection highlight:
- * https://twitter.com/miketaylr/status/12228805301
- *
- * Customize the background color to match your design.
- */
-
-::-moz-selection {
-  background: #b3d4fc;
-  text-shadow: none;
+.note-probabilities-title {
+  color: #fbbf24;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.7rem;
 }
 
-::selection {
-  background: #b3d4fc;
-  text-shadow: none;
-}
-
-/*
- * A better looking default horizontal rule
- */
-
-hr {
+#note-probabilities-canvas {
+  background: #0b1220;
+  border: 1px solid #334155;
+  border-radius: 0.5rem;
+  width: 100%;
+  max-width: 600px;
+  height: 180px;
   display: block;
-  height: 1px;
-  border: 0;
-  border-top: 1px solid #ccc;
-  margin: 1em 0;
-  padding: 0;
+  margin-bottom: 0.5rem;
+  cursor: grab;
+  outline: none;
 }
 
-/*
- * Remove the gap between audio, canvas, iframes,
- * images, videos and the bottom of their containers:
- * https://github.com/h5bp/html5-boilerplate/issues/440
- */
-
-audio,
-canvas,
-iframe,
-img,
-svg,
-video {
-  vertical-align: middle;
+#note-probabilities-canvas:active {
+  cursor: grabbing;
 }
 
-/*
- * Remove default fieldset styles.
- */
-
-fieldset {
-  border: 0;
-  margin: 0;
-  padding: 0;
+.note-probabilities-help {
+  color: #a1a1aa;
+  font-size: 0.92rem;
+  margin-top: 0.2rem;
+  text-align: center;
 }
 
-/*
- * Allow only vertical resizing of textareas.
- */
+.note-probabilities-list {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  min-height: 220px;
+  height: 220px;
+  background: linear-gradient(to top, #232b3a 0%, #334155 100%);
+  border-left: 2px solid #475569;
+  border-right: 2px solid #475569;
+  border-radius: 0.5rem;
+  box-sizing: border-box;
+}
 
-textarea {
-  resize: vertical;
+.note-probability-row {
+  position: absolute;
+  left: 0;
+  width: 48px;
+  z-index: 1;
+  transition: box-shadow 0.15s, background 0.15s;
+  cursor: grab;
+  user-select: none;
+}
+
+.note-probability-row.dragging {
+  opacity: 0.7;
+  z-index: 10;
+  box-shadow: 0 0 0 2px #fbbf24;
+}
+
+.note-probability-label {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #fbbf24;
+  letter-spacing: 0.04em;
+  text-align: center;
+  background: #232b3a;
+  border-radius: 0.4rem;
+  padding: 0.7rem 0.2rem 0.3rem 0.2rem;
+  min-width: 2.7rem;
+  min-height: 2.7rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  user-select: none;
+  cursor: inherit;
+  transition: background 0.15s, color 0.15s;
+}
+
+.note-probability-label:active {
+  background: #fbbf24;
+  color: #232b3a;
+}
+
+.note-probability-value {
+  display: block;
+  font-size: 0.85rem;
+  color: #a1a1aa;
+  text-align: center;
+  margin-top: 0.1rem;
+}
+
+.note-probabilities-axis {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.note-probabilities-axis-label {
+  position: absolute;
+  left: -2.2rem;
+  color: #a1a1aa;
+  font-size: 0.85rem;
+  font-weight: 600;
+  user-select: none;
+}
+
+.note-probabilities-axis-label.top {
+  top: 0;
+}
+
+.note-probabilities-axis-label.bottom {
+  bottom: 0;
 }
 
 /* ==========================================================================
@@ -1484,4 +1537,3 @@ body {
 .clearfix::after {
   clear: both;
 }
-

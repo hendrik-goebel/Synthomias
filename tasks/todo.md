@@ -1439,11 +1439,9 @@
 -
 - ---
 
+```
 - Pending: run `npm run build` to confirm bundling after the routing change.
 - [ ] Verify by running a project build.
-# Task: Arpeggio Loop App
-
-## Plan
 - [x] Review current HTML/CSS/JS scaffold.
 - [x] Implement a simple UI for starting/stopping playback.
 - [x] Implement Web Audio arpeggio scheduler that plays up and down in a loop.
