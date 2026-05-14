@@ -27,6 +27,7 @@ import {
 } from "./effects/delay-effect.js";
 import { applyDistortionEffect, resetDistortionEffectState } from "./effects/distortion-effect.js";
 import { applyPostFilterEffect } from "./effects/post-filter-effect.js";
+import { applyTremoloEffect } from "./effects/tremolo-effect.js";
 import {
   applyReverbMix,
   createImpulseResponse,
@@ -587,6 +588,16 @@ export function scheduleNote(
 
   let voiceOutput = voiceGain;
 
+  // Apply tremolo effect if enabled
+  voiceOutput = applyTremoloEffect({
+    ctx,
+    voiceOutput,
+    voiceNodes,
+    time,
+    noteDurationSeconds: noteDuration,
+    voiceParams: lfoVoiceParams,
+  });
+
   voiceOutput = applyDistortionEffect({
     ctx,
     voiceOutput,
@@ -721,6 +732,7 @@ export function scheduleInstrumentStackNote(time, layerCount, stepIndex = state.
       const noteName = noteNameMatch ? noteNameMatch[1].toUpperCase() : null;
       const noteProbabilities = getNoteProbabilitiesForInstrument(presetId);
       const probability = noteName && noteProbabilities[noteName] !== undefined ? noteProbabilities[noteName] : 1;
+      console.log("Probability for", noteId, "is", probability);
       if (probability >= 1) {
         shouldPlay = true;
       } else if (probability <= 0) {
@@ -948,4 +960,3 @@ export function applyLiveAudioUpdates(paramKey, value) {
 
   handleReverbLiveAudioUpdate(paramKey);
 }
-

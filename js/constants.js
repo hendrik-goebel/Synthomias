@@ -1141,6 +1141,10 @@ export const INITIAL_SYNTH_PARAMS = {
   postFilterCutoff: 0.534,   // normalized log position → ~800 Hz via 20 * 1000^t
   postFilterQ: 1.0,
   postFilterMix: 0.5,
+  tremoloEnabled: 0,
+  tremoloRate: 5.0,
+  tremoloDepth: 0.5,
+  tremoloWaveform: 'sine',
 };
 
 const lfoControlConfig = Object.fromEntries(
@@ -1177,6 +1181,27 @@ const lfoControlConfig = Object.fromEntries(
 );
 
 export const controlConfig = {
+      // Tremolo effect controls
+      "tremolo-enabled": {
+        key: "tremoloEnabled",
+        valueId: "tremolo-enabled-value",
+        formatter: (value) => (Number(value) ? "On" : "Off"),
+      },
+      "tremolo-rate": {
+        key: "tremoloRate",
+        valueId: "tremolo-rate-value",
+        formatter: (value) => `${value.toFixed(2)} Hz`,
+      },
+      "tremolo-depth": {
+        key: "tremoloDepth",
+        valueId: "tremolo-depth-value",
+        formatter: (value) => `${Math.round(value * 100)}%`,
+      },
+      "tremolo-waveform": {
+        key: "tremoloWaveform",
+        valueId: "tremolo-waveform-value",
+        formatter: (value) => value.charAt(0).toUpperCase() + value.slice(1),
+      },
   "note-length-toggle": {
     key: "noteLength",
     valueId: "note-length-toggle-value",
@@ -1349,4 +1374,3 @@ export const controlConfig = {
     formatter: (value) => value.toFixed(2),
   },
 };
-
