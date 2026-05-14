@@ -42,6 +42,7 @@ import {
 import { replaceStateSeedInLocation } from "./state-seed.js";
 import { state } from "./state.js";
 import { clamp } from "./utils.js";
+import { LFO_TARGET_OPTIONS, LFO_SLOT_CONFIGS } from "./constants.js";
 
 // Cache note button elements once for the lifetime of the page
 let noteButtonElements = null;
@@ -1819,4 +1820,26 @@ export function bindGlobalEffectMixSliders(audioEngine, synthParams) {
       }
     });
   }
+}
+
+// Starte Initialisierung nach DOM-Load
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initLfoTargetSelects);
+} else {
+  initLfoTargetSelects();
+}
+
+function initLfoTargetSelects() {
+  LFO_SLOT_CONFIGS.forEach((slotConfig, i) => {
+    const selectId = slotConfig.targetControlId;
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    select.innerHTML = "";
+    LFO_TARGET_OPTIONS.forEach((opt, idx) => {
+      const option = document.createElement("option");
+      option.value = idx;
+      option.textContent = opt.label;
+      select.appendChild(option);
+    });
+  });
 }

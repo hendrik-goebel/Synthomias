@@ -335,6 +335,7 @@ export function scheduleNote(
   const ctx = state.audioContext;
   const lfoVoiceParams = {
     ...voiceParams,
+    channelVolume: getLfoTargetedValue(voiceParams.channelVolume ?? 1, time, "channelVolume", voiceParams),
     detuneSpread: getLfoTargetedValue(voiceParams.detuneSpread ?? 0, time, "detuneSpread", voiceParams),
     subLevel: getLfoTargetedValue(voiceParams.subLevel ?? 0.55, time, "subLevel", voiceParams),
     distortionDrive: getLfoTargetedValue(voiceParams.distortionDrive ?? 0, time, "distortionDrive", voiceParams),
@@ -345,7 +346,7 @@ export function scheduleNote(
     return;
   }
 
-  const effectiveChannelLevel = getEffectiveChannelLevel(voiceParams);
+  const effectiveChannelLevel = getEffectiveChannelLevel(lfoVoiceParams);
   if (effectiveChannelLevel <= 0.0001) {
     // Hard-skip muted channels so no transient/click can leak into dry or FX paths.
     return;
@@ -357,7 +358,7 @@ export function scheduleNote(
   const subOsc = ctx.createOscillator();
 
   // Noise generator
-  const noiseLevel = clamp(voiceParams.noiseLevel ?? 0, 0, 1);
+  const noiseLevel = clamp(lfoVoiceParams.noiseLevel ?? 0, 0, 1);
   const noiseFilterCutoff = clamp(voiceParams.noiseFilterCutoff ?? 4000, 100, 12000);
   let noiseSource = null;
   let noiseFilter = null;

@@ -100,6 +100,8 @@ export const LFO_TARGET_OPTIONS = [
   { label: "Drive", key: "distortionDrive", min: 0, max: 1, modulationAmount: 0.4 },
   { label: "Tone", key: "distortionTone", min: 500, max: 12000, modulationAmount: 3200 },
   { label: "Tape Delay Send", key: "delaySend", min: 0, max: TAPE_DELAY_SEND_MAX, modulationAmount: TAPE_DELAY_SEND_MAX },
+  { label: "Channel Volume", key: "channelVolume", min: 0, max: 1, modulationAmount: 0.5 },
+  { label: "Noise Level", key: "noiseLevel", min: 0, max: 1, modulationAmount: 0.5 },
 ];
 export const LFO_SLOT_COUNT = 4;
 export const LFO_SLOT_CONFIGS = Array.from({ length: LFO_SLOT_COUNT }, (_, index) => {
