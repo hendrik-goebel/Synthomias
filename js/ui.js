@@ -1772,3 +1772,51 @@ export function bindControllerEvents(controller) {
   });
 }
 
+// Bind global effect mix sliders
+export function bindGlobalEffectMixSliders(audioEngine, synthParams) {
+  // Reverb
+  const reverbSlider = document.getElementById('reverb-mix');
+  const reverbValue = document.getElementById('reverb-mix-value');
+  if (reverbSlider && reverbValue) {
+    reverbSlider.value = synthParams.reverbMix;
+    reverbValue.textContent = Number(synthParams.reverbMix).toFixed(2);
+    reverbSlider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      synthParams.reverbMix = value;
+      reverbValue.textContent = value.toFixed(2);
+      if (audioEngine && audioEngine.setReverbMix) {
+        audioEngine.setReverbMix(value);
+      }
+    });
+  }
+  // Delay
+  const delaySlider = document.getElementById('delay-mix');
+  const delayValue = document.getElementById('delay-mix-value');
+  if (delaySlider && delayValue) {
+    delaySlider.value = synthParams.delayMix;
+    delayValue.textContent = Number(synthParams.delayMix).toFixed(2);
+    delaySlider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      synthParams.delayMix = value;
+      delayValue.textContent = value.toFixed(2);
+      if (audioEngine && audioEngine.setDelayMix) {
+        audioEngine.setDelayMix(value);
+      }
+    });
+  }
+  // Tape Delay
+  const tapeDelaySlider = document.getElementById('tape-delay-mix');
+  const tapeDelayValue = document.getElementById('tape-delay-mix-value');
+  if (tapeDelaySlider && tapeDelayValue) {
+    tapeDelaySlider.value = synthParams.tapeDelayMix;
+    tapeDelayValue.textContent = Number(synthParams.tapeDelayMix).toFixed(2);
+    tapeDelaySlider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      synthParams.tapeDelayMix = value;
+      tapeDelayValue.textContent = value.toFixed(2);
+      if (audioEngine && audioEngine.setTapeDelayMix) {
+        audioEngine.setTapeDelayMix(value);
+      }
+    });
+  }
+}

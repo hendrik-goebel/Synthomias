@@ -1129,6 +1129,8 @@ export const INITIAL_SYNTH_PARAMS = {
   cleanDelayTime: 0.25,
   cleanDelayRepetitions: 3,
   reverbMix: 0.34,
+  delayMix: 0.35,
+  tapeDelayMix: 0.35,
   reverbSend: 0.44,
   masterVolume: 0.72,
   oscAWave: "sawtooth",
@@ -1343,6 +1345,16 @@ export const controlConfig = {
   "reverb-mix": {
     key: "reverbMix",
     valueId: "reverb-mix-value",
+    formatter: (value) => value.toFixed(2),
+  },
+  "delay-mix": {
+    key: "delayMix",
+    valueId: "delay-mix-value",
+    formatter: (value) => value.toFixed(2),
+  },
+  "tape-delay-mix": {
+    key: "tapeDelayMix",
+    valueId: "tape-delay-mix-value",
     formatter: (value) => value.toFixed(2),
   },
   "reverb-send": {

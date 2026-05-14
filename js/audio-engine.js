@@ -994,3 +994,21 @@ export function applyLiveAudioUpdates(paramKey, value) {
 
   handleReverbLiveAudioUpdate(paramKey);
 }
+
+// Set the global delay mix (wet/dry)
+export function setDelayMix(value) {
+  if (!state.audioContext || !state.delayReturnGain) return;
+  // Clamp value between 0 and 1
+  const v = Math.max(0, Math.min(1, value));
+  state.delayReturnGain.gain.setValueAtTime(v, state.audioContext.currentTime);
+  state.synthParams.delayMix = v;
+}
+
+// Set the global tape delay mix (wet/dry)
+export function setTapeDelayMix(value) {
+  if (!state.audioContext || !state.cleanDelayReturnGain) return;
+  // Clamp value between 0 and 1
+  const v = Math.max(0, Math.min(1, value));
+  state.cleanDelayReturnGain.gain.setValueAtTime(v, state.audioContext.currentTime);
+  state.synthParams.tapeDelayMix = v;
+}
