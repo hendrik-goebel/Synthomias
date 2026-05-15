@@ -84,7 +84,7 @@ let selectedArpeggioApplyChannelIds = new Set();
 const mixerChannelCache = new Map();
 const controlElementCache = new Map();
 const controlLabelElementCache = new Map();
-const delayToggleControlIds = new Set(["tape-delay-enabled", "clean-delay-enabled"]);
+const delayToggleControlIds = new Set(["tape-delay-enabled", "clean-delay-enabled", "gate-enabled"]);
 
 function getNoteButtonElements() {
   if (!noteButtonElements) {
@@ -1268,6 +1268,7 @@ export function bindPostFilterTypeToggle(controller) {
   });
 }
 
+
 export function bindNoteSelector(controller) {
   const buttons = getNoteButtonElements();
   const rowToggleButtons = getNoteRowToggleElements();
@@ -1787,6 +1788,21 @@ export function bindGlobalEffectMixSliders(audioEngine, synthParams) {
       reverbValue.textContent = value.toFixed(2);
       if (audioEngine && audioEngine.setReverbMix) {
         audioEngine.setReverbMix(value);
+      }
+    });
+  }
+  // Tremolo Depth
+  const tremoloDepthSlider = document.getElementById('tremolo-depth');
+  const tremoloDepthValue = document.getElementById('tremolo-depth-value');
+  if (tremoloDepthSlider && tremoloDepthValue) {
+    tremoloDepthSlider.value = synthParams.tremoloDepth;
+    tremoloDepthValue.textContent = `${Math.round((synthParams.tremoloDepth || 0) * 100)}%`;
+    tremoloDepthSlider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      synthParams.tremoloDepth = value;
+      tremoloDepthValue.textContent = `${Math.round(value * 100)}%`;
+      if (audioEngine && audioEngine.setTremoloDepth) {
+        audioEngine.setTremoloDepth(value);
       }
     });
   }

@@ -12,6 +12,16 @@ import {
   ENVELOPE_DECAY_MIN_SECONDS,
   ENVELOPE_RELEASE_MAX_SECONDS,
   ENVELOPE_RELEASE_MIN_SECONDS,
+  GATE_ATTACK_MAX_S,
+  GATE_ATTACK_MIN_S,
+  GATE_DECAY_MAX_S,
+  GATE_DECAY_MIN_S,
+  GATE_HOLD_MAX_S,
+  GATE_HOLD_MIN_S,
+  GATE_RATE_MAX_HZ,
+  GATE_RATE_MIN_HZ,
+  GATE_THRESHOLD_MAX,
+  GATE_THRESHOLD_MIN,
   LFO_PITCH_SHIFT_MAX_SEMITONES,
   LFO_RATE_MAX_HZ,
   LFO_RATE_MIN_HZ,
@@ -40,6 +50,16 @@ export {
   ENVELOPE_DECAY_MIN_SECONDS,
   ENVELOPE_RELEASE_MAX_SECONDS,
   ENVELOPE_RELEASE_MIN_SECONDS,
+  GATE_ATTACK_MAX_S,
+  GATE_ATTACK_MIN_S,
+  GATE_DECAY_MAX_S,
+  GATE_DECAY_MIN_S,
+  GATE_HOLD_MAX_S,
+  GATE_HOLD_MIN_S,
+  GATE_RATE_MAX_HZ,
+  GATE_RATE_MIN_HZ,
+  GATE_THRESHOLD_MAX,
+  GATE_THRESHOLD_MIN,
   LFO_PITCH_SHIFT_MAX_SEMITONES,
   LFO_RATE_MAX_HZ,
   LFO_RATE_MIN_HZ,
@@ -53,6 +73,7 @@ export {
   STARTUP_DELAY_FEEDBACK_MAX,
   TAPE_DELAY_SEND_MAX,
 } from "./value-limits.js";
+
 
 export const REVERB_SECONDS = 2;
 export const REVERB_DECAY = 2.4;
@@ -1149,6 +1170,13 @@ export const INITIAL_SYNTH_PARAMS = {
   tremoloRate: 5.0,
   tremoloDepth: 0.5,
   tremoloWaveform: 'sine',
+  // Gate effect defaults (per-instrument)
+  gateEnabled: 0,
+  gateRate: 4,         // Hz — one gate cycle per beat at 120 BPM
+  gateThreshold: 0,    // floor level when gate is closed (0 = full silence)
+  gateAttack: 0.005,   // seconds to open
+  gateHold: 0.08,      // seconds to stay open
+  gateDecay: 0.04,     // seconds to close
   // Noise generator defaults
   noiseLevel: 0,
   noiseFilterCutoff: 4000,
@@ -1208,6 +1236,37 @@ export const controlConfig = {
         key: "tremoloWaveform",
         valueId: "tremolo-waveform-value",
         formatter: (value) => value.charAt(0).toUpperCase() + value.slice(1),
+      },
+      // Gate effect controls
+      "gate-enabled": {
+        key: "gateEnabled",
+        valueId: "gate-enabled-value",
+        formatter: (value) => (Number(value) ? "On" : "Off"),
+      },
+      "gate-rate": {
+        key: "gateRate",
+        valueId: "gate-rate-value",
+        formatter: (value) => `${Number(value).toFixed(2)} Hz`,
+      },
+      "gate-threshold": {
+        key: "gateThreshold",
+        valueId: "gate-threshold-value",
+        formatter: (value) => `${Math.round(value * 100)}%`,
+      },
+      "gate-attack": {
+        key: "gateAttack",
+        valueId: "gate-attack-value",
+        formatter: (value) => `${Math.round(Number(value) * 1000)} ms`,
+      },
+      "gate-hold": {
+        key: "gateHold",
+        valueId: "gate-hold-value",
+        formatter: (value) => `${Math.round(Number(value) * 1000)} ms`,
+      },
+      "gate-decay": {
+        key: "gateDecay",
+        valueId: "gate-decay-value",
+        formatter: (value) => `${Math.round(Number(value) * 1000)} ms`,
       },
   "note-length-toggle": {
     key: "noteLength",

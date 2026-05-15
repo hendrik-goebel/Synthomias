@@ -8,6 +8,16 @@ import {
   getCircleOfFifthsKeyLabel,
   getPitchClassesForMajorKey,
   DELAY_DIVISION_OPTIONS,
+  GATE_ATTACK_MAX_S,
+  GATE_ATTACK_MIN_S,
+  GATE_DECAY_MAX_S,
+  GATE_DECAY_MIN_S,
+  GATE_HOLD_MAX_S,
+  GATE_HOLD_MIN_S,
+  GATE_RATE_MAX_HZ,
+  GATE_RATE_MIN_HZ,
+  GATE_THRESHOLD_MAX,
+  GATE_THRESHOLD_MIN,
   GLOBAL_CONTROL_KEYS,
   INITIAL_SYNTH_PARAMS,
   isContinuousPitchShiftEnabled,
@@ -387,6 +397,18 @@ function sanitizeSeedChannelParamValue(key, value, fallback, currentParams = {})
     case "oscBWave":
     case "subWave":
       return typeof value === "string" && validOscillatorTypes.has(value) ? value : fallback;
+    case "gateEnabled":
+      return sanitizeToggleValue(value, fallback);
+    case "gateRate":
+      return clampNumber(value, GATE_RATE_MIN_HZ, GATE_RATE_MAX_HZ, fallback);
+    case "gateThreshold":
+      return clampNumber(value, GATE_THRESHOLD_MIN, GATE_THRESHOLD_MAX, fallback);
+    case "gateAttack":
+      return clampNumber(value, GATE_ATTACK_MIN_S, GATE_ATTACK_MAX_S, fallback);
+    case "gateHold":
+      return clampNumber(value, GATE_HOLD_MIN_S, GATE_HOLD_MAX_S, fallback);
+    case "gateDecay":
+      return clampNumber(value, GATE_DECAY_MIN_S, GATE_DECAY_MAX_S, fallback);
     default:
       return toNumber(value) ?? fallback;
   }
@@ -1258,6 +1280,11 @@ export class AudioStateController extends EventTarget {
 
     if (controlId === "post-filter-type" && !validPostFilterTypes.has(numericValue)) {
       this.emitError(`Invalid post-filter type value for ${controlId}`, { controlId, value });
+      return false;
+    }
+
+    if (controlId === "gate-enabled" && !validToggleValues.has(numericValue)) {
+      this.emitError(`Invalid toggle value for ${controlId}`, { controlId, value });
       return false;
     }
 

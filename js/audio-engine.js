@@ -26,6 +26,7 @@ import {
   syncDelayTimeToTempo,
 } from "./effects/delay-effect.js";
 import { applyDistortionEffect, resetDistortionEffectState } from "./effects/distortion-effect.js";
+import { applyGateEffect } from "./effects/gate-effect.js";
 import { applyPostFilterEffect } from "./effects/post-filter-effect.js";
 import { applyTremoloEffect } from "./effects/tremolo-effect.js";
 import {
@@ -632,6 +633,16 @@ export function scheduleNote(
     voiceParams: lfoVoiceParams,
   });
 
+  // Apply gate effect if enabled
+  voiceOutput = applyGateEffect({
+    ctx,
+    voiceOutput,
+    voiceNodes,
+    time,
+    noteDurationSeconds: noteDuration,
+    voiceParams: lfoVoiceParams,
+  });
+
   voiceOutput = applyDistortionEffect({
     ctx,
     voiceOutput,
@@ -1012,4 +1023,13 @@ export function setTapeDelayMix(value) {
   const v = Math.max(0, Math.min(1, value));
   state.cleanDelayReturnGain.gain.setValueAtTime(v, state.audioContext.currentTime);
   state.synthParams.tapeDelayMix = v;
+}
+
+// Set the global tremolo depth (0..1)
+export function setTremoloDepth(value) {
+  if (!state.audioContext) return;
+  // Clamp value between 0 and 1
+  const v = Math.max(0, Math.min(1, value));
+  state.synthParams.tremoloDepth = v;
+  // Optional: Live update running voices if supported
 }

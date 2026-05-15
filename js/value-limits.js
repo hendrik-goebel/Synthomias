@@ -30,6 +30,17 @@ export const LFO_PITCH_SHIFT_MAX_SEMITONES = 4;
 export const LFO_RATE_MIN_HZ = 0.05;
 export const LFO_RATE_MAX_HZ = 12;
 
+export const GATE_RATE_MIN_HZ = 0.1;
+export const GATE_RATE_MAX_HZ = 20;
+export const GATE_THRESHOLD_MIN = 0;
+export const GATE_THRESHOLD_MAX = 0.9;
+export const GATE_ATTACK_MIN_S = 0.001;
+export const GATE_ATTACK_MAX_S = 0.5;
+export const GATE_HOLD_MIN_S = 0;
+export const GATE_HOLD_MAX_S = 1.0;
+export const GATE_DECAY_MIN_S = 0.001;
+export const GATE_DECAY_MAX_S = 0.5;
+
 export const ENVELOPE_ATTACK_MIN_SECONDS   = 0.001;
 export const ENVELOPE_ATTACK_MAX_SECONDS = 2;
 export const ENVELOPE_DECAY_MIN_SECONDS = 0.005;
