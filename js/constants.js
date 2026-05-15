@@ -98,6 +98,7 @@ export const MIDI_CLOCK_MODE_LABELS = {
 export const MIDI_CLOCK_PULSES_PER_QUARTER = 24;
 export const MIDI_CLOCK_PULSES_PER_TRANSPORT_STEP = 2;
 export const NOTE_LENGTH_OPTIONS = [8, 16, 6, 4, 3];
+export const NOTE_SUSTAIN_OPTIONS = [1, 2, 4, 8, 16, 32];
 export const DELAY_DIVISION_OPTIONS = [
   { label: "1/32", beats: 0.125 },
   { label: "1/16T", beats: 1 / 6 },
@@ -1162,6 +1163,7 @@ export const INITIAL_SYNTH_PARAMS = {
   deadNoteAtEnd: 0,
   endPauseCount: DEAD_NOTE_PAUSE_COUNT_MIN,
   noteLength: 8,
+  noteSustain: 8,
   postFilterType: 0,
   postFilterCutoff: 0.534,   // normalized log position → ~800 Hz via 20 * 1000^t
   postFilterQ: 1.0,
@@ -1271,6 +1273,11 @@ export const controlConfig = {
   "note-length-toggle": {
     key: "noteLength",
     valueId: "note-length-toggle-value",
+    formatter: (value) => String(Math.round(value)),
+  },
+  "note-sustain-toggle": {
+    key: "noteSustain",
+    valueId: "note-sustain-toggle-value",
     formatter: (value) => String(Math.round(value)),
   },
   "global-timbre": {

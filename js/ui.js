@@ -15,6 +15,7 @@ import {
   normalizedFromDelayFeedback,
   normalizedFromLfoRate,
   NOTE_LENGTH_OPTIONS,
+  NOTE_SUSTAIN_OPTIONS,
   NOTE_OPTIONS,
   POST_FILTER_TYPE_OPTIONS,
   uiValueFromDelayDivisionIndex,
@@ -737,6 +738,15 @@ export function renderMixerChannels() {
     noteLengthBtn.dataset.presetId = presetId;
     noteLengthBtn.title = "Note Length";
 
+    const noteSustainBtn = document.createElement("button");
+    noteSustainBtn.type = "button";
+    noteSustainBtn.className = "channel-note-sustain-btn";
+    const noteSustain = instrumentParams.noteSustain ?? 8;
+    noteSustainBtn.textContent = `S:1/${noteSustain}`;
+    noteSustainBtn.value = String(noteSustain);
+    noteSustainBtn.dataset.presetId = presetId;
+    noteSustainBtn.title = "Note Sustain Duration";
+
     const volumeSlider = document.createElement("input");
     volumeSlider.type = "range";
     volumeSlider.className = "channel-volume-slider";
@@ -784,7 +794,7 @@ export function renderMixerChannels() {
 
     midiRow.append(midiChannelSelect, midiSendBtn, midiReceiveBtn);
 
-    buttonsDiv.append(playBtn, variationBtn, muteBtn, noteLengthBtn, volumeSlider, midiRow);
+    buttonsDiv.append(playBtn, variationBtn, muteBtn, noteLengthBtn, noteSustainBtn, volumeSlider, midiRow);
     channelStrip.append(instrumentSelect, nameDiv, indicator, buttonsDiv);
     mixerChannelsContainer.append(channelStrip);
 
@@ -795,6 +805,7 @@ export function renderMixerChannels() {
       playBtn,
       muteBtn,
       noteLengthBtn,
+      noteSustainBtn,
       volumeSlider,
       midiChannelSelect,
       midiSendBtn,
@@ -809,6 +820,15 @@ function updateChannelNoteLengthButton(presetId, value) {
   if (!btn) return;
   const rounded = Math.round(value);
   btn.textContent = `1/${rounded}`;
+  btn.value = String(rounded);
+}
+
+function updateChannelNoteSustainButton(presetId, value) {
+  const channelElements = mixerChannelCache.get(presetId);
+  const btn = channelElements?.noteSustainBtn;
+  if (!btn) return;
+  const rounded = Math.round(value);
+  btn.textContent = `S:1/${rounded}`;
   btn.value = String(rounded);
 }
 
@@ -1521,6 +1541,7 @@ export function bindMixerChannels(controller) {
     const variationBtn = event.target.closest(".channel-variation-btn");
     const muteBtn = event.target.closest(".channel-mute-btn");
     const noteLengthBtn = event.target.closest(".channel-note-length-btn");
+    const noteSustainBtn = event.target.closest(".channel-note-sustain-btn");
     const midiSendBtn = event.target.closest(".channel-midi-send-btn");
     const midiReceiveBtn = event.target.closest(".channel-midi-receive-btn");
     const presetId = strip.dataset.presetId;
@@ -1553,6 +1574,14 @@ export function bindMixerChannels(controller) {
       const currentIndex = NOTE_LENGTH_OPTIONS.indexOf(currentValue);
       const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % NOTE_LENGTH_OPTIONS.length;
       controller.setControlValue("note-length-toggle", NOTE_LENGTH_OPTIONS[nextIndex]);
+      return;
+    }
+
+    if (noteSustainBtn) {
+      const currentValue = Number.parseInt(noteSustainBtn.value, 10);
+      const currentIndex = NOTE_SUSTAIN_OPTIONS.indexOf(currentValue);
+      const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % NOTE_SUSTAIN_OPTIONS.length;
+      controller.setControlValue("note-sustain-toggle", NOTE_SUSTAIN_OPTIONS[nextIndex]);
       return;
     }
 
@@ -1668,6 +1697,9 @@ export function bindControllerEvents(controller) {
       if (controlId === "note-length-toggle") {
         updateChannelNoteLengthButton(presetId, value);
       }
+      if (controlId === "note-sustain-toggle") {
+        updateChannelNoteSustainButton(presetId, value);
+      }
       if (controlId === "tempo-bpm") {
         syncMidiGlobalUI();
       }
@@ -1677,6 +1709,7 @@ export function bindControllerEvents(controller) {
     if (type === "channel-instrument-updated") {
       renderMixerChannels();
       updateChannelNoteLengthButton(presetId, event.detail.noteLength ?? getInstrumentParams(presetId).noteLength ?? 8);
+      updateChannelNoteSustainButton(presetId, event.detail.noteSustain ?? getInstrumentParams(presetId).noteSustain ?? 8);
       updateChannelVolumeSlider(presetId, event.detail.channelVolume ?? getInstrumentParams(presetId).channelVolume ?? 1);
       if (presetId === state.activeInstrumentPresetId) {
         syncControlsFromActiveInstrumentPage();

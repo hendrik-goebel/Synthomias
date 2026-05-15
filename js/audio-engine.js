@@ -412,7 +412,7 @@ export function scheduleNote(
     voiceNodes.push(stereoPanner);
   }
 
-  const noteDuration = getNoteDuration(noteLength);
+  const noteDuration = getNoteDuration(voiceParams.noteSustain ?? noteLength);
   const preStartTime = Math.max(0, time - 0.002);
   const layerGainScale = 1 / Math.sqrt(layerCount);
   const timbreBias = getGlobalTimbreBias();
@@ -794,7 +794,7 @@ export function scheduleInstrumentStackNote(time, layerCount, stepIndex = state.
       if (Number.isInteger(shiftedMidiNoteNumber)) {
         sendMidiNoteForPreset(presetId, shiftedMidiNoteNumber, {
           timeSeconds: time,
-          durationSeconds: getNoteDuration(noteLength),
+          durationSeconds: getNoteDuration(voiceParams.noteSustain ?? noteLength),
           velocity: 96,
         });
       }

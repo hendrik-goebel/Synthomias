@@ -22,6 +22,7 @@ const CHANNEL_LOCAL_PARAM_KEYS = [
   "channelMuted",
   "stereoPan",
   "noteLength",
+  "noteSustain",
   "deadNoteAtEnd",
   "endPauseCount",
 ];
@@ -150,6 +151,13 @@ export function createInstrumentParams(channelId, assignedPresetId = getAssigned
         ? { noteLength: preservedParams.noteLength }
         : startupSceneParams.noteLength !== undefined
           ? { noteLength: startupSceneParams.noteLength }
+          : {}
+    ),
+    ...(
+      preservedParams.noteSustain !== undefined
+        ? { noteSustain: preservedParams.noteSustain }
+        : startupSceneParams.noteSustain !== undefined
+          ? { noteSustain: startupSceneParams.noteSustain }
           : {}
     ),
     ...(

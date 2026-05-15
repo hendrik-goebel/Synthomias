@@ -26,6 +26,7 @@ import {
   LFO_TARGET_PARAM_KEYS,
   LFO_RATE_PARAM_KEYS,
   NOTE_LENGTH_OPTIONS,
+  NOTE_SUSTAIN_OPTIONS,
   NOTE_OPTIONS,
   normalizeCircleOfFifthsKeyIndex,
   PITCH_CLASS_OPTIONS,
@@ -114,6 +115,7 @@ const validChannelIds = new Set(getPresetIds());
 const validAssignablePresetIds = new Set(getAvailablePresetIds());
 const validNoteIds = new Set(NOTE_OPTIONS.map(({ id }) => id));
 const validNoteLengths = new Set(NOTE_LENGTH_OPTIONS);
+const validNoteSustains = new Set(NOTE_SUSTAIN_OPTIONS);
 const validDelayDivisionIndices = new Set(DELAY_DIVISION_OPTIONS.map((_, index) => index));
 const validToggleValues = new Set([0, 1]);
 const validLfoTargetIndices = new Set(LFO_TARGET_OPTIONS.map((_, index) => index));
@@ -221,6 +223,10 @@ function randomizeStartupState() {
     const instrumentParams = getInstrumentParams(channelId);
     instrumentParams.deadNoteAtEnd = getRandomBoolean(0.45);
     instrumentParams.endPauseCount = getRandomCount(1, Math.min(6, DEAD_NOTE_PAUSE_COUNT_MAX));
+
+    // Randomize note length and sustain independently
+    instrumentParams.noteLength = NOTE_LENGTH_OPTIONS[Math.floor(Math.random() * NOTE_LENGTH_OPTIONS.length)];
+    instrumentParams.noteSustain = NOTE_SUSTAIN_OPTIONS[Math.floor(Math.random() * NOTE_SUSTAIN_OPTIONS.length)];
 
     const enabledOctaves = getSafeEnabledOctaves(channelId);
     const enabledPitchClasses = getRandomPitchClassSelection(keyPitchClasses);
@@ -381,6 +387,15 @@ function sanitizeSeedChannelParamValue(key, value, fallback, currentParams = {})
 
       const rounded = Math.round(numeric);
       return validNoteLengths.has(rounded) ? rounded : fallback;
+    }
+    case "noteSustain": {
+      const numeric = toNumber(value);
+      if (numeric === null) {
+        return fallback;
+      }
+
+      const rounded = Math.round(numeric);
+      return validNoteSustains.has(rounded) ? rounded : fallback;
     }
     case "postFilterType": {
       const numeric = toNumber(value);
@@ -1170,6 +1185,11 @@ export class AudioStateController extends EventTarget {
 
     if (controlId === "note-length-toggle" && !validNoteLengths.has(numericValue)) {
       this.emitError(`Invalid note length value for ${controlId}`, { controlId, value });
+      return false;
+    }
+
+    if (controlId === "note-sustain-toggle" && !validNoteSustains.has(numericValue)) {
+      this.emitError(`Invalid note sustain value for ${controlId}`, { controlId, value });
       return false;
     }
 

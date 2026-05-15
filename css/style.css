@@ -424,6 +424,25 @@ body {
   color: #e0f2fe;
 }
 
+.channel-note-sustain-btn {
+  width: 100%;
+  padding: 0.4rem 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: 1px solid #8b5cf6;
+  border-radius: 0.3rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: #3b0764;
+  color: #ddd6fe;
+}
+
+.channel-note-sustain-btn:hover {
+  background: #6d28d9;
+  border-color: #a78bfa;
+  color: #ede9fe;
+}
+
 .channel-volume-slider {
   width: 100%;
   -webkit-appearance: none;
