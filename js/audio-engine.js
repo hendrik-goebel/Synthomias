@@ -3,6 +3,7 @@ import {
   clampLfoRateHz,
   getFrequencyFromMidiNoteNumber,
   getMidiNoteNumberFromNoteId,
+  getNoteProbabilityKeyFromNoteId,
   HUMANIZE,
   isContinuousPitchShiftEnabled,
   LFO_SLOT_CONFIGS,
@@ -773,9 +774,7 @@ export function scheduleInstrumentStackNote(time, layerCount, stepIndex = state.
     // --- Note probability logic ---
     let shouldPlay = true;
     if (noteId) {
-      // noteId is like "note-C4"; extract note name (C, D#, etc.)
-      const noteNameMatch = noteId.match(/^note-([A-G]#?)/i);
-      const noteName = noteNameMatch ? noteNameMatch[1].toUpperCase() : null;
+      const noteName = getNoteProbabilityKeyFromNoteId(noteId);
       const noteProbabilities = getNoteProbabilitiesForInstrument(presetId);
       const probability = noteName && noteProbabilities[noteName] !== undefined ? noteProbabilities[noteName] : 1;
       console.log("Probability for", noteId, "is", probability);

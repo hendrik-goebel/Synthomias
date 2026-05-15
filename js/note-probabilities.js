@@ -1,11 +1,9 @@
 // Note Probabilities UI
 // Handles rendering and interaction for the Note Probabilities section
+import { PITCH_CLASS_OPTIONS } from "./constants.js";
 import { state } from "./state.js";
 
-const NOTE_NAMES = [
-  'C', 'C#', 'D', 'D#', 'E', 'F',
-  'F#', 'G', 'G#', 'A', 'A#', 'B'
-];
+const NOTE_NAMES = PITCH_CLASS_OPTIONS.map(({ label }) => label);
 
 let noteOrder = [...NOTE_NAMES];
 
@@ -131,10 +129,12 @@ function setupNoteProbabilitiesUI() {
   }
   attachControllerListener();
 }
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', setupNoteProbabilitiesUI);
-} else {
-  setupNoteProbabilitiesUI();
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupNoteProbabilitiesUI);
+  } else {
+    setupNoteProbabilitiesUI();
+  }
 }
 
 
@@ -142,12 +142,14 @@ if (document.readyState === 'loading') {
 export { getNoteProbabilitiesForInstrument };
 
 // Optionally export for testing
-window.noteProbabilities = {
-  getOrder: () => [...noteOrder],
-  setOrder: (order) => { noteOrder = [...order]; renderNoteProbabilities(); }
-};
+if (typeof window !== 'undefined') {
+  window.noteProbabilities = {
+    getOrder: () => [...noteOrder],
+    setOrder: (order) => { noteOrder = [...order]; renderNoteProbabilities(); },
+  };
 
-window.refreshNoteProbabilitiesUI = renderNoteProbabilities;
+  window.refreshNoteProbabilitiesUI = renderNoteProbabilities;
+}
 
 
 function getNoteProbabilitiesSnapshot() {

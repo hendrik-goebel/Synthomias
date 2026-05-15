@@ -251,7 +251,14 @@ export function uiValueFromDelayDivisionIndex(index) {
 }
 
 export const DEFAULT_NOTE_IDS = ["note-c4", "note-e4", "note-g4"];
-export const PITCH_CLASS_OPTIONS = [
+export const HARMONIC_NOTE_SYSTEM_MODE_OPTIONS = {
+  classic: "classic",
+  microtone: "microtone",
+};
+export const HARMONIC_NOTE_SYSTEM_MODE = HARMONIC_NOTE_SYSTEM_MODE_OPTIONS.microtone;
+
+const HARMONIC_NOTE_SYSTEM_OCTAVES = [3, 4, 5, 6];
+const CLASSIC_PITCH_CLASS_OPTIONS = [
   { key: "c", label: "C" },
   { key: "cs", label: "C#" },
   { key: "d", label: "D" },
@@ -265,13 +272,129 @@ export const PITCH_CLASS_OPTIONS = [
   { key: "as", label: "A#" },
   { key: "b", label: "B" },
 ];
+
+function normalizeHarmonicNoteSystemMode(mode = HARMONIC_NOTE_SYSTEM_MODE) {
+  return mode === HARMONIC_NOTE_SYSTEM_MODE_OPTIONS.microtone
+    ? HARMONIC_NOTE_SYSTEM_MODE_OPTIONS.microtone
+    : HARMONIC_NOTE_SYSTEM_MODE_OPTIONS.classic;
+}
+
+function buildMicrotonePitchClassOptions() {
+  return CLASSIC_PITCH_CLASS_OPTIONS.flatMap((pitchClassOption, index) => ([
+    {
+      key: pitchClassOption.key,
+      label: pitchClassOption.label,
+      stepIndex: index * 2,
+      midiSemitoneOffset: index,
+    },
+    {
+      key: `${pitchClassOption.key}q`,
+      label: `${pitchClassOption.label}+`,
+      stepIndex: index * 2 + 1,
+      midiSemitoneOffset: Math.min(index + 1, 12),
+    },
+  ]));
+}
+
+function buildPitchClassOptions(mode = HARMONIC_NOTE_SYSTEM_MODE) {
+  return normalizeHarmonicNoteSystemMode(mode) === HARMONIC_NOTE_SYSTEM_MODE_OPTIONS.microtone
+    ? buildMicrotonePitchClassOptions()
+    : CLASSIC_PITCH_CLASS_OPTIONS.map((pitchClassOption, index) => ({
+      ...pitchClassOption,
+      stepIndex: index,
+      midiSemitoneOffset: index,
+    }));
+}
+
+function buildNoteOptions(pitchClassOptions, stepsPerOctave) {
+  const stepToSemitoneRatio = 12 / stepsPerOctave;
+  return HARMONIC_NOTE_SYSTEM_OCTAVES.flatMap((octave) => pitchClassOptions.map((pitchClassOption) => {
+    const midiEquivalent = ((octave + 1) * 12) + (pitchClassOption.stepIndex * stepToSemitoneRatio);
+    const frequency = 440 * Math.pow(2, (midiEquivalent - 69) / 12);
+    return {
+      id: `note-${pitchClassOption.key}${octave}`,
+      label: `${pitchClassOption.label}${octave}`,
+      pitchClassKey: pitchClassOption.key,
+      pitchClassLabel: pitchClassOption.label,
+      octave,
+      frequency,
+      midiEquivalent,
+      midiNoteNumber: Math.round(midiEquivalent),
+    };
+  }));
+}
+
+const HARMONIC_NOTE_SYSTEM_CONFIG_CACHE = new Map();
+
+export function getHarmonicNoteSystemConfig(mode = HARMONIC_NOTE_SYSTEM_MODE) {
+  const normalizedMode = normalizeHarmonicNoteSystemMode(mode);
+  if (HARMONIC_NOTE_SYSTEM_CONFIG_CACHE.has(normalizedMode)) {
+    return HARMONIC_NOTE_SYSTEM_CONFIG_CACHE.get(normalizedMode);
+  }
+
+  const pitchClassOptions = buildPitchClassOptions(normalizedMode);
+  const stepsPerOctave = normalizedMode === HARMONIC_NOTE_SYSTEM_MODE_OPTIONS.microtone ? 24 : 12;
+  const majorKeyIntervals = normalizedMode === HARMONIC_NOTE_SYSTEM_MODE_OPTIONS.microtone
+    ? [0, 4, 8, 10, 14, 18, 22]
+    : [0, 2, 4, 5, 7, 9, 11];
+  const pitchClassOptionByKey = new Map(pitchClassOptions.map((pitchClassOption) => [pitchClassOption.key, pitchClassOption]));
+  const pitchClassLabelByKey = new Map(pitchClassOptions.map(({ key, label }) => [key, label]));
+  const noteOptions = buildNoteOptions(pitchClassOptions, stepsPerOctave);
+  const noteOptionById = new Map(noteOptions.map((noteOption) => [noteOption.id, noteOption]));
+  const noteIdByMidiNoteNumber = new Map();
+  const semitoneStepSize = stepsPerOctave / 12;
+
+  noteOptions.forEach((noteOption) => {
+    if (!noteIdByMidiNoteNumber.has(noteOption.midiNoteNumber)) {
+      noteIdByMidiNoteNumber.set(noteOption.midiNoteNumber, noteOption.id);
+    }
+
+    if (Number.isInteger(semitoneStepSize) && noteOption.pitchClassKey) {
+      const pitchClassOption = pitchClassOptionByKey.get(noteOption.pitchClassKey);
+      if (pitchClassOption && pitchClassOption.stepIndex % semitoneStepSize === 0) {
+        noteIdByMidiNoteNumber.set(noteOption.midiNoteNumber, noteOption.id);
+      }
+    }
+  });
+
+  const config = {
+    mode: normalizedMode,
+    label: normalizedMode === HARMONIC_NOTE_SYSTEM_MODE_OPTIONS.microtone
+      ? "Microtone quarter-tone"
+      : "Classic half-tone",
+    stepsPerOctave,
+    pitchClassOptions,
+    pitchClassOptionByKey,
+    pitchClassLabelByKey,
+    noteOptions,
+    noteOptionById,
+    noteIdByMidiNoteNumber,
+    defaultRandomPitchClassKeys: ["c", "d", "e", "g", "a"],
+    majorKeyIntervals,
+  };
+
+  HARMONIC_NOTE_SYSTEM_CONFIG_CACHE.set(normalizedMode, config);
+  return config;
+}
+
+const DEFAULT_HARMONIC_NOTE_SYSTEM_CONFIG = getHarmonicNoteSystemConfig();
+
+export const PITCH_CLASS_OPTIONS = DEFAULT_HARMONIC_NOTE_SYSTEM_CONFIG.pitchClassOptions;
+export const DEFAULT_RANDOM_PITCH_CLASS_KEYS = DEFAULT_HARMONIC_NOTE_SYSTEM_CONFIG.defaultRandomPitchClassKeys;
+export const NOTE_OPTIONS = DEFAULT_HARMONIC_NOTE_SYSTEM_CONFIG.noteOptions;
+export const PENTATONIC_NOTE_IDS = NOTE_OPTIONS
+  .map(({ id, pitchClassKey }) => ({ id, pitchClassKey }))
+  .filter(({ pitchClassKey }) => DEFAULT_RANDOM_PITCH_CLASS_KEYS.includes(pitchClassKey))
+  .map(({ id }) => id);
+export const ARPEGGIO_OCTAVE_OPTIONS = Array.from(
+  new Set(NOTE_OPTIONS.map(({ octave }) => octave).filter(Number.isInteger)),
+).sort((left, right) => left - right);
 export const CIRCLE_OF_FIFTHS_KEY_ORDER = ["c", "g", "d", "a", "e", "b", "fs", "cs", "gs", "ds", "as", "f"];
 export const DEFAULT_GLOBAL_ARPEGGIO_KEY_INDEX = 0;
 export const ARPEGGIO_HISTORY_LIMIT = 32;
 
-const MAJOR_KEY_SCALE_INTERVALS = [0, 2, 4, 5, 7, 9, 11];
 const PITCH_CLASS_KEY_ORDER = PITCH_CLASS_OPTIONS.map(({ key }) => key);
-const PITCH_CLASS_LABEL_BY_KEY = new Map(PITCH_CLASS_OPTIONS.map(({ key, label }) => [key, label]));
+const PITCH_CLASS_LABEL_BY_KEY = DEFAULT_HARMONIC_NOTE_SYSTEM_CONFIG.pitchClassLabelByKey;
 
 export function normalizeCircleOfFifthsKeyIndex(index) {
   const total = CIRCLE_OF_FIFTHS_KEY_ORDER.length;
@@ -287,88 +410,32 @@ export function getCircleOfFifthsKeyLabel(index) {
   return PITCH_CLASS_LABEL_BY_KEY.get(getCircleOfFifthsKey(index)) || "C";
 }
 
-export function getPitchClassLabel(key) {
-  return PITCH_CLASS_LABEL_BY_KEY.get(key) || "C";
+export function getPitchClassLabel(key, mode = HARMONIC_NOTE_SYSTEM_MODE) {
+  return getHarmonicNoteSystemConfig(mode).pitchClassLabelByKey.get(key) || "C";
 }
 
-export function getPitchClassesForMajorKey(keyOrIndex) {
+export function getPitchClassesForMajorKey(keyOrIndex, mode = HARMONIC_NOTE_SYSTEM_MODE) {
+  const { pitchClassOptions, majorKeyIntervals } = getHarmonicNoteSystemConfig(mode);
   const tonicKey = typeof keyOrIndex === "string"
     ? keyOrIndex
     : getCircleOfFifthsKey(keyOrIndex);
-  const tonicIndex = PITCH_CLASS_KEY_ORDER.indexOf(tonicKey);
+  const tonicIndex = pitchClassOptions.findIndex(({ key }) => key === tonicKey);
   const normalizedTonicIndex = tonicIndex === -1 ? 0 : tonicIndex;
-  return MAJOR_KEY_SCALE_INTERVALS.map(
-    (interval) => PITCH_CLASS_KEY_ORDER[(normalizedTonicIndex + interval) % PITCH_CLASS_KEY_ORDER.length],
+  return majorKeyIntervals.map(
+    (interval) => pitchClassOptions[(normalizedTonicIndex + interval) % pitchClassOptions.length].key,
   );
 }
 
-export const DEFAULT_RANDOM_PITCH_CLASS_KEYS = ["c", "d", "e", "g", "a"];
-export const NOTE_OPTIONS = [
-  { id: "note-c3", frequency: 130.81 },
-  { id: "note-cs3", frequency: 138.59 },
-  { id: "note-d3", frequency: 146.83 },
-  { id: "note-ds3", frequency: 155.56 },
-  { id: "note-e3", frequency: 164.81 },
-  { id: "note-f3", frequency: 174.61 },
-  { id: "note-fs3", frequency: 185.0 },
-  { id: "note-g3", frequency: 196.0 },
-  { id: "note-gs3", frequency: 207.65 },
-  { id: "note-a3", frequency: 220.0 },
-  { id: "note-as3", frequency: 233.08 },
-  { id: "note-b3", frequency: 246.94 },
-  { id: "note-c4", frequency: 261.63 },
-  { id: "note-cs4", frequency: 277.18 },
-  { id: "note-d4", frequency: 293.66 },
-  { id: "note-ds4", frequency: 311.13 },
-  { id: "note-e4", frequency: 329.63 },
-  { id: "note-f4", frequency: 349.23 },
-  { id: "note-fs4", frequency: 369.99 },
-  { id: "note-g4", frequency: 392.0 },
-  { id: "note-gs4", frequency: 415.3 },
-  { id: "note-a4", frequency: 440.0 },
-  { id: "note-as4", frequency: 466.16 },
-  { id: "note-b4", frequency: 493.88 },
-  { id: "note-c5", frequency: 523.25 },
-  { id: "note-cs5", frequency: 554.37 },
-  { id: "note-d5", frequency: 587.33 },
-  { id: "note-ds5", frequency: 622.25 },
-  { id: "note-e5", frequency: 659.25 },
-  { id: "note-f5", frequency: 698.46 },
-  { id: "note-fs5", frequency: 739.99 },
-  { id: "note-g5", frequency: 783.99 },
-  { id: "note-gs5", frequency: 830.61 },
-  { id: "note-a5", frequency: 880.0 },
-  { id: "note-as5", frequency: 932.33 },
-  { id: "note-b5", frequency: 987.77 },
-  { id: "note-c6", frequency: 1046.5 },
-  { id: "note-cs6", frequency: 1108.73 },
-  { id: "note-d6", frequency: 1174.66 },
-  { id: "note-ds6", frequency: 1244.51 },
-  { id: "note-e6", frequency: 1318.51 },
-  { id: "note-f6", frequency: 1396.91 },
-  { id: "note-fs6", frequency: 1479.98 },
-  { id: "note-g6", frequency: 1567.98 },
-  { id: "note-gs6", frequency: 1661.22 },
-  { id: "note-a6", frequency: 1760.0 },
-  { id: "note-as6", frequency: 1864.66 },
-  { id: "note-b6", frequency: 1975.53 },
-];
-
-const PENTATONIC_PITCH_CLASSES = new Set(["c", "d", "e", "g", "a"]);
 export function extractPitchClass(noteId) {
   return noteId.replace("note-", "").replace(/[0-9]+$/, "");
 }
-export const PENTATONIC_NOTE_IDS = NOTE_OPTIONS
-  .map(({ id }) => id)
-  .filter((id) => PENTATONIC_PITCH_CLASSES.has(extractPitchClass(id)));
+export function getNoteProbabilityKeyFromNoteId(noteId, mode = HARMONIC_NOTE_SYSTEM_MODE) {
+  return getPitchClassLabel(extractPitchClass(noteId), mode);
+}
 export function extractOctave(noteId) {
   const match = /([0-9]+)$/.exec(noteId);
   return match ? Number.parseInt(match[1], 10) : null;
 }
-
-const PITCH_CLASS_SEMITONE_BY_KEY = Object.fromEntries(
-  PITCH_CLASS_OPTIONS.map(({ key }, index) => [key, index]),
-);
 
 export function clampMidiChannel(value, fallback = MIDI_CHANNEL_MIN) {
   const numeric = Number.parseInt(value, 10);
@@ -390,15 +457,22 @@ export function clampMidiVelocity(value, fallback = MIDI_VELOCITY_MAX) {
   return Math.min(MIDI_VELOCITY_MAX, Math.max(MIDI_VELOCITY_MIN, numeric));
 }
 
-export function getMidiNoteNumberFromNoteId(noteId) {
+export function getMidiNoteNumberFromNoteId(noteId, mode = HARMONIC_NOTE_SYSTEM_MODE) {
+  const config = getHarmonicNoteSystemConfig(mode);
+  const noteOption = config.noteOptionById.get(noteId);
+  if (noteOption) {
+    return noteOption.midiNoteNumber;
+  }
+
   const pitchClassKey = extractPitchClass(noteId);
   const octave = extractOctave(noteId);
-  const semitone = PITCH_CLASS_SEMITONE_BY_KEY[pitchClassKey];
-  if (!Number.isInteger(octave) || !Number.isInteger(semitone)) {
+  const pitchClassOption = config.pitchClassOptionByKey.get(pitchClassKey);
+  if (!Number.isInteger(octave) || !pitchClassOption) {
     return null;
   }
 
-  return ((octave + 1) * 12) + semitone;
+  const stepToSemitoneRatio = config.stepsPerOctave / 12;
+  return Math.round(((octave + 1) * 12) + (pitchClassOption.stepIndex / stepToSemitoneRatio));
 }
 
 export function getFrequencyFromMidiNoteNumber(midiNoteNumber) {
@@ -410,22 +484,15 @@ export function getFrequencyFromMidiNoteNumber(midiNoteNumber) {
   return 440 * Math.pow(2, (numeric - 69) / 12);
 }
 
-const NOTE_ID_BY_MIDI_NOTE_NUMBER = new Map(
-  NOTE_OPTIONS.map(({ id }) => [getMidiNoteNumberFromNoteId(id), id]),
-);
 
-export function getNoteIdFromMidiNoteNumber(midiNoteNumber) {
+export function getNoteIdFromMidiNoteNumber(midiNoteNumber, mode = HARMONIC_NOTE_SYSTEM_MODE) {
   const numeric = Number.parseInt(midiNoteNumber, 10);
   if (!Number.isInteger(numeric)) {
     return null;
   }
 
-  return NOTE_ID_BY_MIDI_NOTE_NUMBER.get(numeric) || null;
+  return getHarmonicNoteSystemConfig(mode).noteIdByMidiNoteNumber.get(numeric) || null;
 }
-
-export const ARPEGGIO_OCTAVE_OPTIONS = Array.from(
-  new Set(NOTE_OPTIONS.map(({ id }) => extractOctave(id)).filter(Number.isInteger)),
-).sort((left, right) => left - right);
 export const BASE_SOUND_PRESETS = {
   "warm": {
     oscAWave: "sawtooth",

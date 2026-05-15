@@ -1,3 +1,28 @@
+# Task: Add Configurable Classic Or Microtone Harmonic Note System
+
+## Plan
+- [x] Audit the current note selection, pitch-class, probability, and MIDI-mapping flow so the new note system stays centralized.
+- [x] Replace the fixed chromatic note tables with a mode-based note-system generator that can load either the classic half-tone layout or the new quarter-tone microtone layout.
+- [x] Render both the main note grid and the arpeggio settings pitch-class grid from the active note-system config so note changes and bulk apply/variation keep working in microtone mode.
+- [x] Update the focused note-range regression to cover the generated microtone configuration, then run the relevant task tests and `npm run build`.
+
+## Progress Notes
+- Added a configurable harmonic note system in `js/constants.js` with a classic 12-tone default and a generated 24-tone quarter-step variant, plus mode-aware helpers for pitch-class labels, note IDs, MIDI note rounding, and major-key pitch-class lookup.
+- Switched `js/ui.js` to render the main note grid and arpeggio-settings pitch-class grid from the active config so the visible UI now follows the same note-system source of truth as the controller logic.
+- Updated `js/note-probabilities.js` and `js/audio-engine.js` to use pitch-class labels from the shared config, so note probabilities and note routing stay aligned when quarter-tone labels are enabled.
+- Extended `tasks/arpeggio-note-range-test.mjs` to assert both the default classic range and the generated microtone configuration.
+
+## Review
+- `node --experimental-default-type=module tasks/arpeggio-note-range-test.mjs` passed after adding the microtone assertions.
+- `node --experimental-default-type=module tasks/arpeggio-octave-row-toggle-test.mjs` passed.
+- `node --experimental-default-type=module tasks/arpeggio-apply-selected-channels-test.mjs` passed.
+- `node --experimental-default-type=module tasks/global-note-transpose-test.mjs` passed.
+- `node --experimental-default-type=module tasks/midi-note-routing-test.mjs` passed.
+- `npm run build` completed successfully after the note-system and UI changes.
+- `node --experimental-default-type=module tasks/initial-startup-scene-test.mjs` still fails on an existing startup note-length hydration mismatch (`pluck` expected `16`, actual `8`), which appears unrelated to the harmonic note-system refactor.
+
+---
+
 # Task: Fix Production Build Duplicating Mixer Instruments
 
 ## Plan

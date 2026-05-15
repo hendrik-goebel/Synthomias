@@ -1,5 +1,9 @@
 # Lessons Learned
 
+- When a UI helper module is imported by Node-based tests, guard every `document`/`window` side effect at module scope; otherwise a perfectly valid runtime change can break otherwise unrelated headless regressions.
+
+- When a musical note system can switch modes, generate the visible grids, labels, probability keys, and MIDI mappings from one shared configuration object; if those representations drift apart, classic and microtone paths stop behaving consistently.
+
 - When a production HTML template already includes the app bundle manually, disable `HtmlWebpackPlugin` auto-injection (or remove the manual tag) so the same entry chunk is not loaded twice; duplicate bootstrap scripts can silently double-render UI and double-bind events only in built output.
 
 - When one modulation source grows into multiple independent LFOs, keep the original slot's ids/keys as backward-compatible aliases and generate the extra slot config from shared metadata; this avoids duplicating UI/controller logic and keeps old seeds/tests working while new slots are added.

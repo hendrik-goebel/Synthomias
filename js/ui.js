@@ -9,6 +9,7 @@ import {
   getCircleOfFifthsKeyLabel,
   getPitchClassLabel,
   getPitchClassesForMajorKey,
+  ARPEGGIO_OCTAVE_OPTIONS,
   GLOBAL_CONTROL_KEYS,
   isContinuousPitchShiftEnabled,
   lfoRateFromNormalized,
@@ -17,6 +18,7 @@ import {
   NOTE_LENGTH_OPTIONS,
   NOTE_SUSTAIN_OPTIONS,
   NOTE_OPTIONS,
+  PITCH_CLASS_OPTIONS,
   POST_FILTER_TYPE_OPTIONS,
   uiValueFromDelayDivisionIndex,
 } from "./constants.js";
@@ -330,6 +332,81 @@ function getNoteRowElements() {
     noteRowElements = Array.from(document.querySelectorAll(".note-row"));
   }
   return noteRowElements;
+}
+
+function renderNoteSelectorGrid() {
+  const noteGrid = document.getElementById("note-grid");
+  const noteSelectorLegend = document.querySelector(".note-selector > legend");
+
+  if (!noteGrid) {
+    return;
+  }
+
+  noteGrid.replaceChildren();
+  ARPEGGIO_OCTAVE_OPTIONS.forEach((octave) => {
+    const row = document.createElement("div");
+    row.className = "note-row";
+    row.dataset.noteOctave = String(octave);
+
+    const side = document.createElement("div");
+    side.className = "note-row-side";
+
+    const rowToggle = document.createElement("button");
+    rowToggle.type = "button";
+    rowToggle.className = "control-toggle-btn note-row-toggle is-active";
+    rowToggle.dataset.noteOctave = String(octave);
+    rowToggle.value = "1";
+    rowToggle.setAttribute("aria-pressed", "true");
+    rowToggle.textContent = "On";
+    side.append(rowToggle);
+
+    const buttonsContainer = document.createElement("div");
+    buttonsContainer.className = "note-row-buttons";
+
+    NOTE_OPTIONS.filter((note) => note.octave === octave).forEach((note) => {
+      const button = document.createElement("button");
+      button.id = note.id;
+      button.dataset.noteId = note.id;
+      button.type = "button";
+      button.className = "note-toggle";
+      button.setAttribute("aria-pressed", "false");
+      button.textContent = note.label;
+      buttonsContainer.append(button);
+    });
+
+    row.append(side, buttonsContainer);
+    noteGrid.append(row);
+  });
+
+  if (noteSelectorLegend && NOTE_OPTIONS.length > 0) {
+    const firstLabel = NOTE_OPTIONS[0]?.label || "C3";
+    const lastLabel = NOTE_OPTIONS.at(-1)?.label || "B6";
+    noteSelectorLegend.textContent = `Arpeggio Notes (${firstLabel}–${lastLabel})`;
+  }
+
+  noteButtonElements = null;
+  noteRowToggleElements = null;
+  noteRowElements = null;
+}
+
+function renderSettingsNoteGrid() {
+  const settingsNoteGrid = document.querySelector(".settings-note-grid");
+  if (!settingsNoteGrid) {
+    return;
+  }
+
+  settingsNoteGrid.replaceChildren();
+  PITCH_CLASS_OPTIONS.forEach(({ key, label }) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "note-toggle settings-note-toggle";
+    button.dataset.pitchClassKey = key;
+    button.setAttribute("aria-pressed", "false");
+    button.textContent = label;
+    settingsNoteGrid.append(button);
+  });
+
+  settingsNoteButtonElements = null;
 }
 
 function resetArpeggioApplyChannelSelection(channelIds = getPresetIds()) {
@@ -1290,6 +1367,7 @@ export function bindPostFilterTypeToggle(controller) {
 
 
 export function bindNoteSelector(controller) {
+  renderNoteSelectorGrid();
   const buttons = getNoteButtonElements();
   const rowToggleButtons = getNoteRowToggleElements();
 
@@ -1377,6 +1455,8 @@ export function bindSettingsDialog(controller) {
   if (!toggleButton || !dialog) {
     return;
   }
+
+  renderSettingsNoteGrid();
 
   const openDialog = () => {
     resetArpeggioApplyChannelSelection();
