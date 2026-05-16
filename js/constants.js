@@ -99,6 +99,7 @@ export const MIDI_CLOCK_PULSES_PER_QUARTER = 24;
 export const MIDI_CLOCK_PULSES_PER_TRANSPORT_STEP = 2;
 export const NOTE_LENGTH_OPTIONS = [8, 16, 6, 4, 3];
 export const NOTE_SUSTAIN_OPTIONS = [1, 2, 4, 8, 16, 32];
+export const RHYTHM_PATTERN_LENGTH = 16;
 export const DELAY_DIVISION_OPTIONS = [
   { label: "1/32", beats: 0.125 },
   { label: "1/16T", beats: 1 / 6 },
@@ -515,6 +516,7 @@ const COMPLETE_PRESET_PARAMETER_DEFAULTS = {
   noteLength: 8,
   noteSustain: 8,
   pauseNoteEnabled: 0,
+  rhythmPattern: "0000000000000000",
   deadNoteAtEnd: 0,
   endPauseCount: 1,
   distortionDrive: 0.24,

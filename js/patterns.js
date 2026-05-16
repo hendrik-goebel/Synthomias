@@ -212,7 +212,7 @@ function getRandomPauseInsertionIndex(noteCount) {
   return Math.floor(Math.random() * (stepCount + 1));
 }
 
-export function buildArpeggioPattern(notes, trailingPauseCount = 0, pauseInsertionIndex = null) {
+export function buildArpeggioPattern(notes, trailingPauseCount = 0, pauseInsertionIndex = null, rhythmPattern = null) {
   const ascending = notes.slice();
   const descendingWithoutPeakOrRoot = notes.length < 2 ? [] : notes.slice(1, -1).reverse();
   const pattern = ascending.concat(descendingWithoutPeakOrRoot);
@@ -224,6 +224,17 @@ export function buildArpeggioPattern(notes, trailingPauseCount = 0, pauseInserti
     );
     // A dedicated silent step behaves like a rest "note" inside the loop.
     pattern.splice(safePauseInsertionIndex, 0, null);
+  }
+
+  // Apply rhythm pattern: if rhythmPattern is set, insert pauses at specified positions
+  if (rhythmPattern && typeof rhythmPattern === "string") {
+    // Work backwards through the pattern to avoid index shifting issues
+    for (let i = Math.min(pattern.length - 1, rhythmPattern.length - 1); i >= 0; i -= 1) {
+      if (rhythmPattern[i] === "1") {
+        // Insert a pause (null) after position i
+        pattern.splice(i + 1, 0, null);
+      }
+    }
   }
 
   const normalizedPauseCount = Math.max(0, Math.floor(trailingPauseCount));
@@ -296,16 +307,19 @@ export function rebuildInstrumentPattern(presetId) {
   const pauseInsertionIndex = includePauseNote
     ? getRandomPauseInsertionIndex(selectedNoteIds.length)
     : null;
+  const rhythmPattern = instrumentParams.rhythmPattern ?? "0000000000000000";
 
   state.instrumentPatternNoteIdsByPresetId[presetId] = buildArpeggioPattern(
     selectedNoteIds,
     instrumentParams.deadNoteAtEnd ? instrumentParams.endPauseCount ?? 1 : 0,
     pauseInsertionIndex,
+    rhythmPattern,
   );
   state.instrumentPatternsByPresetId[presetId] = buildArpeggioPattern(
     selectedFrequencies,
     instrumentParams.deadNoteAtEnd ? instrumentParams.endPauseCount ?? 1 : 0,
     pauseInsertionIndex,
+    rhythmPattern,
   );
 }
 

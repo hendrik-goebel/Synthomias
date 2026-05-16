@@ -24,6 +24,7 @@ const CHANNEL_LOCAL_PARAM_KEYS = [
   "noteLength",
   "noteSustain",
   "pauseNoteEnabled",
+  "rhythmPattern",
   "deadNoteAtEnd",
   "endPauseCount",
 ];
@@ -167,6 +168,13 @@ export function createInstrumentParams(channelId, assignedPresetId = getAssigned
         : startupSceneParams.pauseNoteEnabled !== undefined
           ? { pauseNoteEnabled: startupSceneParams.pauseNoteEnabled }
           : { pauseNoteEnabled: 0 }
+    ),
+    ...(
+      preservedParams.rhythmPattern !== undefined
+        ? { rhythmPattern: preservedParams.rhythmPattern }
+        : startupSceneParams.rhythmPattern !== undefined
+          ? { rhythmPattern: startupSceneParams.rhythmPattern }
+          : { rhythmPattern: "0000000000000000" }
     ),
     ...(
       preservedParams.deadNoteAtEnd !== undefined

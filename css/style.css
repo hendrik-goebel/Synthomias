@@ -600,7 +600,7 @@ body {
 
   .controls-top-row > .controls-global-panel {
     grid-column: 2;
-    grid-row: 1 / span 2;
+    grid-row: 1 / span 4;
     position: static;
     width: auto;
     margin: 0;
@@ -611,6 +611,16 @@ body {
   .controls-top-row > .note-selector {
     grid-column: 1;
     grid-row: 2;
+  }
+
+  .controls-top-row > .rhythm-section {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .controls-top-row > .note-probabilities-section {
+    grid-column: 1;
+    grid-row: 4;
   }
 
   .controls-main-panel {
@@ -1065,6 +1075,69 @@ body {
   border-color: #818cf8;
   background: #312e81;
   color: #e0e7ff;
+}
+
+/* Rhythm Definition Section */
+.rhythm-section {
+  margin: 0.6rem 0;
+  padding: 0.7rem;
+  border: 1px solid #374151;
+  border-radius: 0.5rem;
+  background: #111827;
+}
+
+.rhythm-section-title {
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #dbeafe;
+}
+
+.rhythm-buttons {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.rhythm-button {
+  width: 100%;
+  min-width: 0;
+  padding: 0.5rem 0.25rem;
+  border: 1px solid #334155;
+  border-radius: 0.4rem;
+  background: #111827;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+}
+
+.rhythm-button:hover {
+  border-color: #60a5fa;
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+.rhythm-button:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.rhythm-button.is-active,
+.rhythm-button[aria-pressed="true"] {
+  border-color: #ec4899;
+  background: #831843;
+  color: #fbcfe8;
+  box-shadow: 0 0 0 1px rgba(236, 72, 153, 0.35), 0 0 14px rgba(236, 72, 153, 0.16);
 }
 
 .settings-dialog {

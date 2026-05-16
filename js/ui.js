@@ -84,6 +84,7 @@ let settingsNoteButtonElements = null;
 let settingsChannelButtonElements = null;
 let noteRowToggleElements = null;
 let noteRowElements = null;
+let rhythmButtonElements = null;
 let selectedArpeggioApplyChannelIds = new Set();
 const mixerChannelCache = new Map();
 const controlElementCache = new Map();
@@ -116,6 +117,18 @@ function getDeadNoteCountToggleElement() {
     deadNoteCountToggleElement = document.getElementById("dead-note-count-toggle");
   }
   return deadNoteCountToggleElement;
+}
+
+function getRhythmButtonElements() {
+  if (!rhythmButtonElements) {
+    const container = document.getElementById("rhythm-buttons");
+    if (container) {
+      rhythmButtonElements = Array.from(container.querySelectorAll(".rhythm-button"));
+    } else {
+      rhythmButtonElements = [];
+    }
+  }
+  return rhythmButtonElements;
 }
 
 function getArpeggioSettingsToggleElement() {
@@ -1003,6 +1016,40 @@ export function syncArpeggioPauseNoteControlUI(pauseNoteEnabled) {
   });
 }
 
+export function syncRhythmPatternUI(rhythmPattern) {
+  const buttons = getRhythmButtonElements();
+  const pattern = String(rhythmPattern || "0000000000000000");
+
+  buttons.forEach((button, index) => {
+    const isPaused = pattern[index] === "1";
+    button.classList.toggle("is-active", isPaused);
+    button.setAttribute("aria-pressed", String(isPaused));
+  });
+}
+
+export function generateRhythmButtons() {
+  const container = document.getElementById("rhythm-buttons");
+  if (!container) return;
+
+  // Clear existing buttons
+  container.innerHTML = "";
+
+  // Create 16 buttons
+  for (let i = 0; i < 16; i += 1) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "rhythm-button";
+    button.setAttribute("data-rhythm-index", String(i));
+    button.setAttribute("aria-pressed", "false");
+    button.setAttribute("aria-label", `Pause at note ${i + 1}`);
+    button.textContent = String(i + 1);
+    container.appendChild(button);
+  }
+
+  // Reset the cache so getRhythmButtonElements will re-query
+  rhythmButtonElements = null;
+}
+
 function syncGlobalTransportButtons() {
   const playButton = getGlobalPlayButtonElement();
   const stopButton = getGlobalStopButtonElement();
@@ -1181,14 +1228,15 @@ export function syncControlsFromActiveInstrumentPage() {
 
   syncArpeggioOctaveRowUI(state.activeInstrumentPresetId);
   syncNoteButtonsFromActiveInstrumentPage();
-  syncDeadNoteControlsUI(
-    instrumentParams.deadNoteAtEnd ?? 0,
-    instrumentParams.endPauseCount ?? DEAD_NOTE_PAUSE_COUNT_MIN,
-  );
-  syncArpeggioPauseNoteControlUI(instrumentParams.pauseNoteEnabled ?? 0);
-  syncArpeggioSettingsHistoryView(state.activeInstrumentPresetId);
-  syncMidiGlobalUI();
-  updateTransportUI();
+   syncDeadNoteControlsUI(
+     instrumentParams.deadNoteAtEnd ?? 0,
+     instrumentParams.endPauseCount ?? DEAD_NOTE_PAUSE_COUNT_MIN,
+   );
+    syncArpeggioPauseNoteControlUI(instrumentParams.pauseNoteEnabled ?? 0);
+    syncRhythmPatternUI(instrumentParams.rhythmPattern ?? "0000000000000000");
+   syncArpeggioSettingsHistoryView(state.activeInstrumentPresetId);
+   syncMidiGlobalUI();
+   updateTransportUI();
 }
 
 export function bindControls() {
@@ -1497,6 +1545,26 @@ export function bindArpeggioPauseNoteToggle(controller) {
         return;
       }
       controllerRef.toggleArpeggioPauseNote();
+    });
+  });
+}
+
+export function bindRhythmButtons(controller) {
+  generateRhythmButtons();
+  getRhythmButtonElements().forEach((button) => {
+    if (button.dataset.rhythmBound === "1") {
+      return;
+    }
+
+    button.controllerRef = controller;
+    button.dataset.rhythmBound = "1";
+    button.addEventListener("click", (event) => {
+      const controllerRef = event.currentTarget?.controllerRef;
+      const index = Number(event.currentTarget?.dataset?.rhythmIndex);
+      if (!controllerRef || !Number.isInteger(index)) {
+        return;
+      }
+      controllerRef.toggleRhythmPatternPosition(index);
     });
   });
 }
@@ -1922,6 +1990,14 @@ export function bindControllerEvents(controller) {
       if (presetId === state.activeInstrumentPresetId) {
         const instrumentParams = getInstrumentParams(presetId);
         syncArpeggioPauseNoteControlUI(instrumentParams.pauseNoteEnabled ?? 0);
+      }
+      return;
+    }
+
+    if (type === "rhythm-pattern-updated") {
+      if (presetId === state.activeInstrumentPresetId) {
+        const instrumentParams = getInstrumentParams(presetId);
+        syncRhythmPatternUI(instrumentParams.rhythmPattern ?? "0000000000000000");
       }
       return;
     }

@@ -398,6 +398,14 @@ function sanitizeSeedChannelParamValue(key, value, fallback, currentParams = {})
       const rounded = Math.round(numeric);
       return validNoteSustains.has(rounded) ? rounded : fallback;
     }
+    case "rhythmPattern": {
+      const str = String(value || "").trim();
+      // Validate rhythm pattern: must be 16 characters of 0s and 1s
+      if (!/^[01]{16}$/.test(str)) {
+        return fallback;
+      }
+      return str;
+    }
     case "postFilterType": {
       const numeric = toNumber(value);
       if (numeric === null) {
@@ -1614,6 +1622,41 @@ export class AudioStateController extends EventTarget {
       value: nextValue,
     });
     this.emitStateChange("arpeggio-pause-note-updated", {
+      presetId,
+      value: nextValue,
+    });
+    return true;
+  }
+
+  toggleRhythmPatternPosition(positionIndex, presetId = state.activeInstrumentPresetId) {
+    if (!validChannelIds.has(presetId)) {
+      this.emitError(`Unknown preset id: ${presetId}`, { presetId });
+      return false;
+    }
+
+    if (!Number.isInteger(positionIndex) || positionIndex < 0 || positionIndex >= 16) {
+      this.emitError(`Invalid rhythm pattern position: ${positionIndex}`);
+      return false;
+    }
+
+    ensureInstrumentNoteState(presetId);
+    const instrumentParams = getInstrumentParams(presetId);
+    let pattern = String(instrumentParams.rhythmPattern || "0000000000000000");
+
+    // Toggle the bit at the position
+    const chars = pattern.split("");
+    chars[positionIndex] = chars[positionIndex] === "0" ? "1" : "0";
+    const nextValue = chars.join("");
+
+    instrumentParams.rhythmPattern = nextValue;
+    rebuildInstrumentPattern(presetId);
+
+    this.emitAction("rhythm-pattern-toggled", {
+      presetId,
+      positionIndex,
+      value: nextValue,
+    });
+    this.emitStateChange("rhythm-pattern-updated", {
       presetId,
       value: nextValue,
     });
