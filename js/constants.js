@@ -493,6 +493,148 @@ export function getNoteIdFromMidiNoteNumber(midiNoteNumber, mode = HARMONIC_NOTE
 
   return getHarmonicNoteSystemConfig(mode).noteIdByMidiNoteNumber.get(numeric) || null;
 }
+
+const COMPLETE_PRESET_PARAMETER_DEFAULTS = {
+  oscAWave: "sawtooth",
+  oscBWave: "triangle",
+  subWave: "sine",
+  detuneSpread: 3,
+  subLevel: 0.62,
+  upperLevel: 0.58,
+  filterCutoff: 950,
+  filterTracking: 0.72,
+  filterQ: 1,
+  attack: 0.08,
+  decay: 0.28,
+  release: 0.16,
+  pitchShiftContinuous: 0,
+  pitchShiftSemitones: 0,
+  stereoPan: 0,
+  channelVolume: 0.88,
+  channelMuted: 0,
+  noteLength: 8,
+  noteSustain: 8,
+  pauseNoteEnabled: 0,
+  deadNoteAtEnd: 0,
+  endPauseCount: 1,
+  distortionDrive: 0.24,
+  distortionMix: 0.12,
+  distortionTone: 1400,
+  distortionFeedback: 0,
+  transientAmount: 0.08,
+  transientDecay: 0.02,
+  transientTone: 1500,
+  pitchDropCents: 6,
+  delaySend: 0.06,
+  cleanDelaySend: 0.08,
+  reverbSend: 0.36,
+  postFilterType: 0,
+  postFilterCutoff: 0.534,
+  postFilterQ: 1,
+  postFilterMix: 0.18,
+  tremoloEnabled: 0,
+  tremoloRate: 5,
+  tremoloDepth: 0.5,
+  tremoloWaveform: "sine",
+  gateEnabled: 0,
+  gateRate: 4,
+  gateThreshold: 0,
+  gateAttack: 0.005,
+  gateHold: 0.08,
+  gateDecay: 0.04,
+  noiseLevel: 0,
+  noiseFilterCutoff: 4000,
+  lfoTarget: 0,
+  lfoRate: 0.22,
+  lfoDepth: 0,
+  lfo2Target: 0,
+  lfo2Rate: 0.22,
+  lfo2Depth: 0,
+  lfo3Target: 0,
+  lfo3Rate: 0.22,
+  lfo3Depth: 0,
+  lfo4Target: 0,
+  lfo4Rate: 0.22,
+  lfo4Depth: 0,
+};
+
+function createCompletePreset(overrides = {}) {
+  return {
+    ...COMPLETE_PRESET_PARAMETER_DEFAULTS,
+    ...overrides,
+  };
+}
+
+const EXPANDED_SOUND_PRESETS = {
+  "neon-lead": createCompletePreset({ oscAWave: "square", oscBWave: "sawtooth", detuneSpread: 1.8, subLevel: 0.3, upperLevel: 0.84, filterCutoff: 1220, filterTracking: 0.9, filterQ: 2.8, attack: 0.004, decay: 0.15, release: 0.09, distortionDrive: 0.62, distortionMix: 0.38, distortionTone: 1700, transientAmount: 0.2, transientDecay: 0.011, transientTone: 2000, delaySend: 0.08, cleanDelaySend: 0.06, reverbSend: 0.18, postFilterType: 3, postFilterCutoff: 0.58, postFilterQ: 2.2, postFilterMix: 0.26, lfoTarget: 3, lfoRate: 0.45, lfoDepth: 0.18, lfo2Target: 2, lfo2Rate: 0.16, lfo2Depth: 0.22, lfo3Target: 5, lfo3Rate: 0.31, lfo3Depth: 0.14, lfo4Target: 11, lfo4Rate: 0.09, lfo4Depth: 0.28 }),
+  "razor-lead": createCompletePreset({ oscAWave: "sawtooth", oscBWave: "square", detuneSpread: 0.9, subLevel: 0.26, upperLevel: 0.9, filterCutoff: 980, filterTracking: 0.82, filterQ: 3.4, attack: 0.002, decay: 0.11, release: 0.06, distortionDrive: 0.78, distortionMix: 0.56, distortionTone: 1300, distortionFeedback: 0.08, transientAmount: 0.24, transientDecay: 0.01, transientTone: 1800, pitchDropCents: 18, delaySend: 0.02, cleanDelaySend: 0, reverbSend: 0.12, postFilterType: 2, postFilterCutoff: 0.5, postFilterQ: 1.4, postFilterMix: 0.24, lfoTarget: 1, lfoRate: 0.33, lfoDepth: 0.18, lfo2Target: 9, lfo2Rate: 0.5, lfo2Depth: 0.12, lfo3Target: 3, lfo3Rate: 0.28, lfo3Depth: 0.1, lfo4Target: 12, lfo4Rate: 0.07, lfo4Depth: 0.34 }),
+  "silk-lead": createCompletePreset({ oscAWave: "triangle", oscBWave: "sine", subWave: "triangle", detuneSpread: 2.2, subLevel: 0.48, upperLevel: 0.68, filterCutoff: 1120, filterTracking: 0.76, filterQ: 1.1, attack: 0.012, decay: 0.18, release: 0.2, distortionDrive: 0.28, distortionMix: 0.12, distortionTone: 2000, transientAmount: 0.09, transientDecay: 0.018, transientTone: 1600, delaySend: 0.1, cleanDelaySend: 0.14, reverbSend: 0.34, postFilterType: 1, postFilterCutoff: 0.6, postFilterQ: 0.9, postFilterMix: 0.16, lfoTarget: 4, lfoRate: 0.26, lfoDepth: 0.2, lfo2Target: 1, lfo2Rate: 0.09, lfo2Depth: 0.22, lfo3Target: 2, lfo3Rate: 0.18, lfo3Depth: 0.16, lfo4Target: 5, lfo4Rate: 0.13, lfo4Depth: 0.2 }),
+  "fm-lead": createCompletePreset({ oscAWave: "triangle", oscBWave: "triangle", subWave: "sine", detuneSpread: 0.7, subLevel: 0.42, upperLevel: 0.76, filterCutoff: 1380, filterTracking: 0.94, filterQ: 1.7, attack: 0.003, decay: 0.14, release: 0.11, distortionDrive: 0.44, distortionMix: 0.24, distortionTone: 2100, transientAmount: 0.18, transientDecay: 0.014, transientTone: 2400, delaySend: 0.07, cleanDelaySend: 0.11, reverbSend: 0.24, postFilterType: 3, postFilterCutoff: 0.55, postFilterQ: 1.9, postFilterMix: 0.22, lfoTarget: 3, lfoRate: 0.29, lfoDepth: 0.16, lfo2Target: 10, lfo2Rate: 0.12, lfo2Depth: 0.28, lfo3Target: 1, lfo3Rate: 0.21, lfo3Depth: 0.14, lfo4Target: 2, lfo4Rate: 0.48, lfo4Depth: 0.08 }),
+  "pulse-lead": createCompletePreset({ oscAWave: "square", oscBWave: "triangle", detuneSpread: 1.2, subLevel: 0.36, upperLevel: 0.8, filterCutoff: 1040, filterTracking: 0.8, filterQ: 2.1, attack: 0.002, decay: 0.12, release: 0.08, distortionDrive: 0.52, distortionMix: 0.31, distortionTone: 1600, transientAmount: 0.16, transientDecay: 0.012, transientTone: 1700, delaySend: 0.06, cleanDelaySend: 0.02, reverbSend: 0.18, postFilterType: 3, postFilterCutoff: 0.52, postFilterQ: 2, postFilterMix: 0.28, gateEnabled: 1, gateRate: 6, gateThreshold: 0.08, gateAttack: 0.003, gateHold: 0.05, gateDecay: 0.03, lfoTarget: 12, lfoRate: 0.22, lfoDepth: 0.42, lfo2Target: 1, lfo2Rate: 0.14, lfo2Depth: 0.16, lfo3Target: 3, lfo3Rate: 0.35, lfo3Depth: 0.12, lfo4Target: 9, lfo4Rate: 0.58, lfo4Depth: 0.09 }),
+  "pulse-seq": createCompletePreset({ oscAWave: "square", oscBWave: "square", detuneSpread: 0.4, subLevel: 0.22, upperLevel: 0.86, filterCutoff: 880, filterTracking: 0.74, filterQ: 2.6, attack: 0.001, decay: 0.09, release: 0.05, noteLength: 16, noteSustain: 4, distortionDrive: 0.64, distortionMix: 0.44, distortionTone: 1500, transientAmount: 0.21, transientDecay: 0.01, transientTone: 1450, delaySend: 0.1, cleanDelaySend: 0, reverbSend: 0.09, gateEnabled: 1, gateRate: 8, gateThreshold: 0.04, gateAttack: 0.002, gateHold: 0.035, gateDecay: 0.025, postFilterType: 2, postFilterCutoff: 0.46, postFilterQ: 1.2, postFilterMix: 0.3, lfoTarget: 2, lfoRate: 0.64, lfoDepth: 0.22, lfo2Target: 1, lfo2Rate: 0.14, lfo2Depth: 0.1, lfo3Target: 11, lfo3Rate: 0.09, lfo3Depth: 0.24, lfo4Target: 12, lfo4Rate: 0.27, lfo4Depth: 0.38 }),
+  "glitch-seq": createCompletePreset({ oscAWave: "sawtooth", oscBWave: "square", subWave: "triangle", detuneSpread: 2.8, subLevel: 0.44, upperLevel: 0.7, filterCutoff: 920, filterTracking: 0.84, filterQ: 3.2, attack: 0.002, decay: 0.08, release: 0.06, noteLength: 16, noteSustain: 2, distortionDrive: 0.82, distortionMix: 0.64, distortionTone: 1200, distortionFeedback: 0.09, transientAmount: 0.25, transientDecay: 0.01, transientTone: 2300, pitchDropCents: 20, delaySend: 0.1, cleanDelaySend: 0.06, reverbSend: 0.1, postFilterType: 3, postFilterCutoff: 0.48, postFilterQ: 2.4, postFilterMix: 0.4, tremoloEnabled: 1, tremoloRate: 7.5, tremoloDepth: 0.38, tremoloWaveform: "square", gateEnabled: 1, gateRate: 7, gateThreshold: 0.1, gateAttack: 0.001, gateHold: 0.03, gateDecay: 0.018, noiseLevel: 0.14, noiseFilterCutoff: 2200, lfoTarget: 9, lfoRate: 0.52, lfoDepth: 0.2, lfo2Target: 10, lfo2Rate: 0.24, lfo2Depth: 0.18, lfo3Target: 1, lfo3Rate: 0.16, lfo3Depth: 0.15, lfo4Target: 11, lfo4Rate: 0.1, lfo4Depth: 0.34 }),
+  "chime-seq": createCompletePreset({ oscAWave: "triangle", oscBWave: "sine", detuneSpread: 3.4, subLevel: 0.2, upperLevel: 0.76, filterCutoff: 1500, filterTracking: 0.92, filterQ: 1.2, attack: 0.003, decay: 0.16, release: 0.12, noteLength: 16, noteSustain: 4, distortionDrive: 0.22, distortionMix: 0.1, distortionTone: 2600, transientAmount: 0.17, transientDecay: 0.012, transientTone: 2900, delaySend: 0.08, cleanDelaySend: 0.24, reverbSend: 0.44, stereoPan: 0.12, postFilterType: 1, postFilterCutoff: 0.64, postFilterQ: 0.8, postFilterMix: 0.1, tremoloEnabled: 1, tremoloRate: 5.8, tremoloDepth: 0.24, tremoloWaveform: "triangle", lfoTarget: 4, lfoRate: 0.31, lfoDepth: 0.16, lfo2Target: 12, lfo2Rate: 0.12, lfo2Depth: 0.26, lfo3Target: 2, lfo3Rate: 0.22, lfo3Depth: 0.14, lfo4Target: 5, lfo4Rate: 0.18, lfo4Depth: 0.14 }),
+  "motor-seq": createCompletePreset({ oscAWave: "sawtooth", oscBWave: "triangle", detuneSpread: 1.4, subLevel: 0.62, upperLevel: 0.66, filterCutoff: 760, filterTracking: 0.68, filterQ: 2.4, attack: 0.001, decay: 0.07, release: 0.05, noteLength: 16, noteSustain: 2, distortionDrive: 0.58, distortionMix: 0.36, distortionTone: 1100, distortionFeedback: 0.06, transientAmount: 0.19, transientDecay: 0.01, transientTone: 1200, pitchDropCents: 16, delaySend: 0.05, cleanDelaySend: 0.02, reverbSend: 0.08, postFilterType: 2, postFilterCutoff: 0.44, postFilterQ: 1.1, postFilterMix: 0.3, gateEnabled: 1, gateRate: 9, gateThreshold: 0.06, gateAttack: 0.002, gateHold: 0.025, gateDecay: 0.02, lfoTarget: 11, lfoRate: 0.18, lfoDepth: 0.32, lfo2Target: 12, lfo2Rate: 0.27, lfo2Depth: 0.4, lfo3Target: 3, lfo3Rate: 0.41, lfo3Depth: 0.1, lfo4Target: 1, lfo4Rate: 0.11, lfo4Depth: 0.18 }),
+  "lattice-seq": createCompletePreset({ oscAWave: "triangle", oscBWave: "square", subWave: "sine", detuneSpread: 2.1, subLevel: 0.4, upperLevel: 0.74, filterCutoff: 1020, filterTracking: 0.78, filterQ: 2, attack: 0.002, decay: 0.11, release: 0.08, noteLength: 16, noteSustain: 4, distortionDrive: 0.34, distortionMix: 0.16, distortionTone: 1800, transientAmount: 0.15, transientDecay: 0.013, transientTone: 1900, delaySend: 0.1, cleanDelaySend: 0.1, reverbSend: 0.2, postFilterType: 3, postFilterCutoff: 0.54, postFilterQ: 1.7, postFilterMix: 0.22, tremoloEnabled: 1, tremoloRate: 4.2, tremoloDepth: 0.26, tremoloWaveform: "sine", lfoTarget: 10, lfoRate: 0.2, lfoDepth: 0.24, lfo2Target: 4, lfo2Rate: 0.33, lfo2Depth: 0.16, lfo3Target: 2, lfo3Rate: 0.12, lfo3Depth: 0.2, lfo4Target: 5, lfo4Rate: 0.5, lfo4Depth: 0.11 }),
+  "low-drone": createCompletePreset({ oscAWave: "sine", oscBWave: "triangle", subWave: "sine", detuneSpread: 0.4, subLevel: 1.1, upperLevel: 0.26, filterCutoff: 320, filterTracking: 0.22, filterQ: 0.78, attack: 0.42, decay: 0.68, release: 0.64, noteLength: 3, noteSustain: 16, distortionDrive: 0.18, distortionMix: 0.08, distortionTone: 820, transientAmount: 0, transientDecay: 0.03, transientTone: 700, pitchDropCents: 0, delaySend: 0.04, cleanDelaySend: 0.03, reverbSend: 0.84, postFilterType: 1, postFilterCutoff: 0.36, postFilterQ: 0.7, postFilterMix: 0.26, lfoTarget: 1, lfoRate: 0.06, lfoDepth: 0.14, lfo2Target: 4, lfo2Rate: 0.04, lfo2Depth: 0.18, lfo3Target: 12, lfo3Rate: 0.02, lfo3Depth: 0.3, lfo4Target: 5, lfo4Rate: 0.08, lfo4Depth: 0.12 }),
+  "hollow-drone": createCompletePreset({ oscAWave: "triangle", oscBWave: "triangle", subWave: "sine", detuneSpread: 4.8, subLevel: 0.7, upperLevel: 0.42, filterCutoff: 500, filterTracking: 0.34, filterQ: 0.94, attack: 0.36, decay: 0.74, release: 0.72, noteLength: 4, noteSustain: 16, distortionDrive: 0.16, distortionMix: 0.05, distortionTone: 1000, delaySend: 0.1, cleanDelaySend: 0.08, reverbSend: 0.88, postFilterType: 2, postFilterCutoff: 0.4, postFilterQ: 0.9, postFilterMix: 0.22, noiseLevel: 0.06, noiseFilterCutoff: 1200, lfoTarget: 2, lfoRate: 0.05, lfoDepth: 0.2, lfo2Target: 1, lfo2Rate: 0.03, lfo2Depth: 0.18, lfo3Target: 4, lfo3Rate: 0.07, lfo3Depth: 0.22, lfo4Target: 11, lfo4Rate: 0.05, lfo4Depth: 0.28 }),
+  "rust-drone": createCompletePreset({ oscAWave: "square", oscBWave: "sawtooth", subWave: "sine", detuneSpread: 6.4, subLevel: 0.8, upperLevel: 0.52, filterCutoff: 460, filterTracking: 0.3, filterQ: 1.5, attack: 0.28, decay: 0.62, release: 0.58, noteLength: 4, noteSustain: 16, distortionDrive: 0.46, distortionMix: 0.28, distortionTone: 900, distortionFeedback: 0.1, delaySend: 0.1, cleanDelaySend: 0.06, reverbSend: 0.74, postFilterType: 1, postFilterCutoff: 0.34, postFilterQ: 1.2, postFilterMix: 0.34, noiseLevel: 0.18, noiseFilterCutoff: 900, deadNoteAtEnd: 1, endPauseCount: 2, lfoTarget: 10, lfoRate: 0.04, lfoDepth: 0.24, lfo2Target: 12, lfo2Rate: 0.03, lfo2Depth: 0.31, lfo3Target: 1, lfo3Rate: 0.08, lfo3Depth: 0.12, lfo4Target: 2, lfo4Rate: 0.06, lfo4Depth: 0.14 }),
+  "choir-drone": createCompletePreset({ oscAWave: "triangle", oscBWave: "sine", subWave: "triangle", detuneSpread: 3.6, subLevel: 0.68, upperLevel: 0.52, filterCutoff: 640, filterTracking: 0.42, filterQ: 0.85, attack: 0.48, decay: 0.84, release: 0.74, noteLength: 3, noteSustain: 32, distortionDrive: 0.12, distortionMix: 0.04, distortionTone: 1600, delaySend: 0.06, cleanDelaySend: 0.1, reverbSend: 0.92, postFilterType: 0, postFilterCutoff: 0.54, postFilterQ: 0.8, postFilterMix: 0.08, tremoloEnabled: 1, tremoloRate: 0.8, tremoloDepth: 0.16, tremoloWaveform: "sine", lfoTarget: 4, lfoRate: 0.07, lfoDepth: 0.26, lfo2Target: 1, lfo2Rate: 0.03, lfo2Depth: 0.16, lfo3Target: 12, lfo3Rate: 0.02, lfo3Depth: 0.34, lfo4Target: 2, lfo4Rate: 0.05, lfo4Depth: 0.14 }),
+  "glass-drone": createCompletePreset({ oscAWave: "sine", oscBWave: "sine", detuneSpread: 9, subLevel: 0.28, upperLevel: 0.76, filterCutoff: 1380, filterTracking: 0.86, filterQ: 1.25, attack: 0.22, decay: 0.56, release: 0.66, noteLength: 4, noteSustain: 16, distortionDrive: 0.2, distortionMix: 0.08, distortionTone: 2800, delaySend: 0.08, cleanDelaySend: 0.22, reverbSend: 0.9, stereoPan: 0.26, postFilterType: 3, postFilterCutoff: 0.66, postFilterQ: 1.1, postFilterMix: 0.18, tremoloEnabled: 1, tremoloRate: 1.4, tremoloDepth: 0.2, tremoloWaveform: "triangle", lfoTarget: 2, lfoRate: 0.05, lfoDepth: 0.22, lfo2Target: 4, lfo2Rate: 0.07, lfo2Depth: 0.18, lfo3Target: 11, lfo3Rate: 0.03, lfo3Depth: 0.26, lfo4Target: 12, lfo4Rate: 0.04, lfo4Depth: 0.38 }),
+  "mist-texture": createCompletePreset({ oscAWave: "sine", oscBWave: "triangle", detuneSpread: 5.2, subLevel: 0.44, upperLevel: 0.5, filterCutoff: 860, filterTracking: 0.5, filterQ: 0.9, attack: 0.16, decay: 0.44, release: 0.32, distortionDrive: 0.18, distortionMix: 0.08, distortionTone: 1800, delaySend: 0.08, cleanDelaySend: 0.16, reverbSend: 0.8, postFilterType: 1, postFilterCutoff: 0.62, postFilterQ: 0.8, postFilterMix: 0.2, noiseLevel: 0.08, noiseFilterCutoff: 3200, lfoTarget: 4, lfoRate: 0.18, lfoDepth: 0.2, lfo2Target: 2, lfo2Rate: 0.1, lfo2Depth: 0.16, lfo3Target: 11, lfo3Rate: 0.08, lfo3Depth: 0.24, lfo4Target: 12, lfo4Rate: 0.06, lfo4Depth: 0.22 }),
+  "grain-texture": createCompletePreset({ oscAWave: "square", oscBWave: "triangle", subWave: "triangle", detuneSpread: 8.4, subLevel: 0.5, upperLevel: 0.56, filterCutoff: 700, filterTracking: 0.58, filterQ: 1.9, attack: 0.03, decay: 0.18, release: 0.14, distortionDrive: 0.5, distortionMix: 0.32, distortionTone: 1400, distortionFeedback: 0.07, transientAmount: 0.11, transientDecay: 0.016, transientTone: 2100, delaySend: 0.1, cleanDelaySend: 0.08, reverbSend: 0.42, postFilterType: 2, postFilterCutoff: 0.5, postFilterQ: 1.3, postFilterMix: 0.3, noiseLevel: 0.22, noiseFilterCutoff: 1700, lfoTarget: 9, lfoRate: 0.3, lfoDepth: 0.16, lfo2Target: 1, lfo2Rate: 0.15, lfo2Depth: 0.14, lfo3Target: 10, lfo3Rate: 0.25, lfo3Depth: 0.18, lfo4Target: 11, lfo4Rate: 0.12, lfo4Depth: 0.3 }),
+  "cosmic-texture": createCompletePreset({ oscAWave: "sawtooth", oscBWave: "sine", subWave: "sine", detuneSpread: 9.8, subLevel: 0.6, upperLevel: 0.62, filterCutoff: 780, filterTracking: 0.54, filterQ: 1.2, attack: 0.2, decay: 0.58, release: 0.46, distortionDrive: 0.3, distortionMix: 0.14, distortionTone: 1900, delaySend: 0.1, cleanDelaySend: 0.2, reverbSend: 0.86, stereoPan: -0.2, postFilterType: 3, postFilterCutoff: 0.6, postFilterQ: 1.4, postFilterMix: 0.28, tremoloEnabled: 1, tremoloRate: 2.2, tremoloDepth: 0.24, tremoloWaveform: "sine", noiseLevel: 0.09, noiseFilterCutoff: 2600, lfoTarget: 1, lfoRate: 0.07, lfoDepth: 0.24, lfo2Target: 4, lfo2Rate: 0.09, lfo2Depth: 0.2, lfo3Target: 2, lfo3Rate: 0.11, lfo3Depth: 0.16, lfo4Target: 12, lfo4Rate: 0.05, lfo4Depth: 0.32 }),
+  "noise-bed": createCompletePreset({ oscAWave: "triangle", oscBWave: "triangle", subWave: "sine", detuneSpread: 4.6, subLevel: 0.34, upperLevel: 0.3, filterCutoff: 520, filterTracking: 0.26, filterQ: 0.95, attack: 0.08, decay: 0.32, release: 0.24, distortionDrive: 0.26, distortionMix: 0.16, distortionTone: 1100, delaySend: 0.04, cleanDelaySend: 0.06, reverbSend: 0.64, postFilterType: 1, postFilterCutoff: 0.38, postFilterQ: 0.9, postFilterMix: 0.22, noiseLevel: 0.36, noiseFilterCutoff: 1400, tremoloEnabled: 1, tremoloRate: 1.8, tremoloDepth: 0.28, tremoloWaveform: "triangle", lfoTarget: 13, lfoRate: 0.14, lfoDepth: 0.36, lfo2Target: 2, lfo2Rate: 0.08, lfo2Depth: 0.22, lfo3Target: 11, lfo3Rate: 0.05, lfo3Depth: 0.2, lfo4Target: 12, lfo4Rate: 0.04, lfo4Depth: 0.3 }),
+  "shimmer-bed": createCompletePreset({ oscAWave: "sine", oscBWave: "sine", subWave: "sine", detuneSpread: 7.6, subLevel: 0.26, upperLevel: 0.72, filterCutoff: 1650, filterTracking: 0.9, filterQ: 1.15, attack: 0.09, decay: 0.28, release: 0.4, distortionDrive: 0.14, distortionMix: 0.04, distortionTone: 3200, delaySend: 0.08, cleanDelaySend: 0.24, reverbSend: 0.88, postFilterType: 0, postFilterCutoff: 0.54, postFilterQ: 0.8, postFilterMix: 0.08, tremoloEnabled: 1, tremoloRate: 3.2, tremoloDepth: 0.22, tremoloWaveform: "sine", lfoTarget: 4, lfoRate: 0.22, lfoDepth: 0.24, lfo2Target: 1, lfo2Rate: 0.09, lfo2Depth: 0.17, lfo3Target: 2, lfo3Rate: 0.15, lfo3Depth: 0.16, lfo4Target: 12, lfo4Rate: 0.07, lfo4Depth: 0.28 }),
+  "aurora-pad": createCompletePreset({ oscAWave: "sawtooth", oscBWave: "triangle", subWave: "sine", detuneSpread: 5.4, subLevel: 0.76, upperLevel: 0.48, filterCutoff: 660, filterTracking: 0.46, filterQ: 0.82, attack: 0.3, decay: 0.62, release: 0.54, distortionDrive: 0.16, distortionMix: 0.06, distortionTone: 1300, delaySend: 0.08, cleanDelaySend: 0.14, reverbSend: 0.82, postFilterType: 1, postFilterCutoff: 0.48, postFilterQ: 0.8, postFilterMix: 0.18, lfoTarget: 1, lfoRate: 0.08, lfoDepth: 0.18, lfo2Target: 4, lfo2Rate: 0.05, lfo2Depth: 0.16, lfo3Target: 12, lfo3Rate: 0.04, lfo3Depth: 0.28, lfo4Target: 2, lfo4Rate: 0.06, lfo4Depth: 0.1 }),
+  "ember-pad": createCompletePreset({ oscAWave: "triangle", oscBWave: "sawtooth", subWave: "triangle", detuneSpread: 3.8, subLevel: 0.82, upperLevel: 0.38, filterCutoff: 540, filterTracking: 0.35, filterQ: 0.88, attack: 0.24, decay: 0.56, release: 0.48, distortionDrive: 0.24, distortionMix: 0.1, distortionTone: 1200, delaySend: 0.04, cleanDelaySend: 0.08, reverbSend: 0.74, postFilterType: 2, postFilterCutoff: 0.42, postFilterQ: 0.95, postFilterMix: 0.2, lfoTarget: 1, lfoRate: 0.09, lfoDepth: 0.16, lfo2Target: 2, lfo2Rate: 0.07, lfo2Depth: 0.14, lfo3Target: 4, lfo3Rate: 0.05, lfo3Depth: 0.18, lfo4Target: 11, lfo4Rate: 0.04, lfo4Depth: 0.26 }),
+  "ocean-pad": createCompletePreset({ oscAWave: "sine", oscBWave: "triangle", subWave: "sine", detuneSpread: 6.8, subLevel: 0.64, upperLevel: 0.52, filterCutoff: 720, filterTracking: 0.5, filterQ: 0.74, attack: 0.34, decay: 0.72, release: 0.66, distortionDrive: 0.1, distortionMix: 0.03, distortionTone: 1500, delaySend: 0.06, cleanDelaySend: 0.22, reverbSend: 0.9, stereoPan: -0.12, postFilterType: 0, postFilterCutoff: 0.55, postFilterQ: 0.7, postFilterMix: 0.1, tremoloEnabled: 1, tremoloRate: 1.2, tremoloDepth: 0.14, tremoloWaveform: "sine", lfoTarget: 4, lfoRate: 0.06, lfoDepth: 0.22, lfo2Target: 1, lfo2Rate: 0.04, lfo2Depth: 0.16, lfo3Target: 12, lfo3Rate: 0.03, lfo3Depth: 0.3, lfo4Target: 2, lfo4Rate: 0.05, lfo4Depth: 0.12 }),
+  "mono-pad": createCompletePreset({ oscAWave: "triangle", oscBWave: "triangle", subWave: "sine", detuneSpread: 1.4, subLevel: 0.86, upperLevel: 0.3, filterCutoff: 500, filterTracking: 0.32, filterQ: 0.8, attack: 0.18, decay: 0.48, release: 0.36, distortionDrive: 0.18, distortionMix: 0.07, distortionTone: 1000, delaySend: 0.03, cleanDelaySend: 0.04, reverbSend: 0.6, postFilterType: 1, postFilterCutoff: 0.4, postFilterQ: 0.8, postFilterMix: 0.22, lfoTarget: 1, lfoRate: 0.08, lfoDepth: 0.14, lfo2Target: 2, lfo2Rate: 0.06, lfo2Depth: 0.1, lfo3Target: 11, lfo3Rate: 0.05, lfo3Depth: 0.24, lfo4Target: 12, lfo4Rate: 0.04, lfo4Depth: 0.24 }),
+  "punch-bass": createCompletePreset({ oscAWave: "sawtooth", oscBWave: "square", subWave: "sine", detuneSpread: 0.7, subLevel: 1.06, upperLevel: 0.28, filterCutoff: 380, filterTracking: 0.34, filterQ: 1.4, attack: 0.002, decay: 0.16, release: 0.08, distortionDrive: 0.66, distortionMix: 0.36, distortionTone: 900, distortionFeedback: 0.08, transientAmount: 0.2, transientDecay: 0.014, transientTone: 900, pitchDropCents: 22, delaySend: 0.01, cleanDelaySend: 0, reverbSend: 0.06, postFilterType: 1, postFilterCutoff: 0.39, postFilterQ: 1, postFilterMix: 0.24, gateEnabled: 1, gateRate: 5, gateThreshold: 0.02, gateAttack: 0.002, gateHold: 0.045, gateDecay: 0.02, lfoTarget: 3, lfoRate: 0.18, lfoDepth: 0.12, lfo2Target: 10, lfo2Rate: 0.12, lfo2Depth: 0.16, lfo3Target: 1, lfo3Rate: 0.09, lfo3Depth: 0.12, lfo4Target: 11, lfo4Rate: 0.08, lfo4Depth: 0.2 }),
+  "growl-bass": createCompletePreset({ oscAWave: "square", oscBWave: "sawtooth", subWave: "triangle", detuneSpread: 1.3, subLevel: 0.98, upperLevel: 0.42, filterCutoff: 430, filterTracking: 0.4, filterQ: 2.2, attack: 0.003, decay: 0.14, release: 0.09, distortionDrive: 0.84, distortionMix: 0.58, distortionTone: 1100, distortionFeedback: 0.16, transientAmount: 0.17, transientDecay: 0.013, transientTone: 980, pitchDropCents: 24, delaySend: 0.04, cleanDelaySend: 0.02, reverbSend: 0.08, postFilterType: 2, postFilterCutoff: 0.41, postFilterQ: 1.4, postFilterMix: 0.32, noiseLevel: 0.08, noiseFilterCutoff: 1000, lfoTarget: 1, lfoRate: 0.2, lfoDepth: 0.16, lfo2Target: 3, lfo2Rate: 0.14, lfo2Depth: 0.1, lfo3Target: 10, lfo3Rate: 0.16, lfo3Depth: 0.2, lfo4Target: 11, lfo4Rate: 0.1, lfo4Depth: 0.24 }),
+  "drift-bass": createCompletePreset({ oscAWave: "sine", oscBWave: "triangle", subWave: "sine", detuneSpread: 0.8, subLevel: 1, upperLevel: 0.3, filterCutoff: 340, filterTracking: 0.26, filterQ: 0.86, attack: 0.006, decay: 0.2, release: 0.11, distortionDrive: 0.3, distortionMix: 0.14, distortionTone: 800, transientAmount: 0.09, transientDecay: 0.02, transientTone: 650, delaySend: 0.03, cleanDelaySend: 0.03, reverbSend: 0.16, postFilterType: 1, postFilterCutoff: 0.36, postFilterQ: 0.8, postFilterMix: 0.2, tremoloEnabled: 1, tremoloRate: 2.4, tremoloDepth: 0.12, tremoloWaveform: "sine", lfoTarget: 5, lfoRate: 0.12, lfoDepth: 0.1, lfo2Target: 1, lfo2Rate: 0.06, lfo2Depth: 0.1, lfo3Target: 12, lfo3Rate: 0.05, lfo3Depth: 0.16, lfo4Target: 2, lfo4Rate: 0.08, lfo4Depth: 0.12 }),
+  "round-bass": createCompletePreset({ oscAWave: "triangle", oscBWave: "triangle", subWave: "sine", detuneSpread: 0.5, subLevel: 1.08, upperLevel: 0.2, filterCutoff: 300, filterTracking: 0.22, filterQ: 0.74, attack: 0.004, decay: 0.18, release: 0.1, distortionDrive: 0.24, distortionMix: 0.1, distortionTone: 720, transientAmount: 0.05, transientDecay: 0.022, transientTone: 560, delaySend: 0, cleanDelaySend: 0.01, reverbSend: 0.08, postFilterType: 1, postFilterCutoff: 0.35, postFilterQ: 0.75, postFilterMix: 0.15, lfoTarget: 1, lfoRate: 0.08, lfoDepth: 0.08, lfo2Target: 5, lfo2Rate: 0.05, lfo2Depth: 0.08, lfo3Target: 11, lfo3Rate: 0.04, lfo3Depth: 0.14, lfo4Target: 12, lfo4Rate: 0.03, lfo4Depth: 0.18 }),
+  "tine-keys": createCompletePreset({ oscAWave: "triangle", oscBWave: "sine", subWave: "sine", detuneSpread: 1.1, subLevel: 0.34, upperLevel: 0.62, filterCutoff: 1320, filterTracking: 0.88, filterQ: 1.3, attack: 0.002, decay: 0.2, release: 0.12, noteLength: 16, noteSustain: 4, distortionDrive: 0.26, distortionMix: 0.12, distortionTone: 1850, transientAmount: 0.2, transientDecay: 0.012, transientTone: 2200, pitchDropCents: 10, delaySend: 0.07, cleanDelaySend: 0.16, reverbSend: 0.34, postFilterType: 3, postFilterCutoff: 0.58, postFilterQ: 1.6, postFilterMix: 0.2, lfoTarget: 4, lfoRate: 0.28, lfoDepth: 0.18, lfo2Target: 2, lfo2Rate: 0.15, lfo2Depth: 0.14, lfo3Target: 11, lfo3Rate: 0.08, lfo3Depth: 0.2, lfo4Target: 12, lfo4Rate: 0.1, lfo4Depth: 0.24 }),
+  "tape-keys": createCompletePreset({ oscAWave: "sawtooth", oscBWave: "triangle", subWave: "sine", detuneSpread: 2.6, subLevel: 0.48, upperLevel: 0.58, filterCutoff: 980, filterTracking: 0.72, filterQ: 1.2, attack: 0.009, decay: 0.22, release: 0.18, noteLength: 8, noteSustain: 8, distortionDrive: 0.38, distortionMix: 0.2, distortionTone: 1450, transientAmount: 0.1, transientDecay: 0.018, transientTone: 1300, delaySend: 0.1, cleanDelaySend: 0.08, reverbSend: 0.3, postFilterType: 1, postFilterCutoff: 0.52, postFilterQ: 1, postFilterMix: 0.24, noiseLevel: 0.05, noiseFilterCutoff: 1800, lfoTarget: 11, lfoRate: 0.1, lfoDepth: 0.24, lfo2Target: 4, lfo2Rate: 0.2, lfo2Depth: 0.12, lfo3Target: 2, lfo3Rate: 0.14, lfo3Depth: 0.14, lfo4Target: 12, lfo4Rate: 0.08, lfo4Depth: 0.26 }),
+  "harp-keys": createCompletePreset({ oscAWave: "triangle", oscBWave: "sine", subWave: "sine", detuneSpread: 0.8, subLevel: 0.24, upperLevel: 0.66, filterCutoff: 1480, filterTracking: 0.94, filterQ: 1.1, attack: 0.001, decay: 0.14, release: 0.1, noteLength: 16, noteSustain: 2, distortionDrive: 0.2, distortionMix: 0.08, distortionTone: 2300, transientAmount: 0.23, transientDecay: 0.011, transientTone: 2600, delaySend: 0.04, cleanDelaySend: 0.14, reverbSend: 0.46, stereoPan: 0.18, postFilterType: 0, postFilterCutoff: 0.54, postFilterQ: 0.8, postFilterMix: 0.1, lfoTarget: 2, lfoRate: 0.22, lfoDepth: 0.14, lfo2Target: 4, lfo2Rate: 0.3, lfo2Depth: 0.16, lfo3Target: 12, lfo3Rate: 0.16, lfo3Depth: 0.2, lfo4Target: 5, lfo4Rate: 0.12, lfo4Depth: 0.1 }),
+  "clavi-keys": createCompletePreset({ oscAWave: "square", oscBWave: "triangle", subWave: "triangle", detuneSpread: 1.6, subLevel: 0.42, upperLevel: 0.7, filterCutoff: 1120, filterTracking: 0.84, filterQ: 1.8, attack: 0.001, decay: 0.1, release: 0.07, noteLength: 16, noteSustain: 4, distortionDrive: 0.46, distortionMix: 0.28, distortionTone: 1600, transientAmount: 0.2, transientDecay: 0.011, transientTone: 1750, pitchDropCents: 14, delaySend: 0.06, cleanDelaySend: 0.05, reverbSend: 0.14, postFilterType: 3, postFilterCutoff: 0.56, postFilterQ: 1.9, postFilterMix: 0.25, gateEnabled: 1, gateRate: 6, gateThreshold: 0.06, gateAttack: 0.001, gateHold: 0.03, gateDecay: 0.02, lfoTarget: 9, lfoRate: 0.2, lfoDepth: 0.16, lfo2Target: 2, lfo2Rate: 0.32, lfo2Depth: 0.2, lfo3Target: 11, lfo3Rate: 0.11, lfo3Depth: 0.24, lfo4Target: 12, lfo4Rate: 0.16, lfo4Depth: 0.28 }),
+};
+
+const EXPANDED_PRESET_METADATA = {
+  "neon-lead": { label: "Neon Lead", categoryKey: "leads" },
+  "razor-lead": { label: "Razor Lead", categoryKey: "leads" },
+  "silk-lead": { label: "Silk Lead", categoryKey: "leads" },
+  "fm-lead": { label: "FM Lead", categoryKey: "leads" },
+  "pulse-lead": { label: "Pulse Lead", categoryKey: "leads" },
+  "pulse-seq": { label: "Pulse Sequence", categoryKey: "sequences" },
+  "glitch-seq": { label: "Glitch Sequence", categoryKey: "sequences" },
+  "chime-seq": { label: "Chime Sequence", categoryKey: "sequences" },
+  "motor-seq": { label: "Motor Sequence", categoryKey: "sequences" },
+  "lattice-seq": { label: "Lattice Sequence", categoryKey: "sequences" },
+  "low-drone": { label: "Low Drone", categoryKey: "drones" },
+  "hollow-drone": { label: "Hollow Drone", categoryKey: "drones" },
+  "rust-drone": { label: "Rust Drone", categoryKey: "drones" },
+  "choir-drone": { label: "Choir Drone", categoryKey: "drones" },
+  "glass-drone": { label: "Glass Drone", categoryKey: "drones" },
+  "mist-texture": { label: "Mist Texture", categoryKey: "textures" },
+  "grain-texture": { label: "Grain Texture", categoryKey: "textures" },
+  "cosmic-texture": { label: "Cosmic Texture", categoryKey: "textures" },
+  "noise-bed": { label: "Noise Bed", categoryKey: "textures" },
+  "shimmer-bed": { label: "Shimmer Bed", categoryKey: "textures" },
+  "aurora-pad": { label: "Aurora Pad", categoryKey: "pads" },
+  "ember-pad": { label: "Ember Pad", categoryKey: "pads" },
+  "ocean-pad": { label: "Ocean Pad", categoryKey: "pads" },
+  "mono-pad": { label: "Mono Pad", categoryKey: "pads" },
+  "punch-bass": { label: "Punch Bass", categoryKey: "bass" },
+  "growl-bass": { label: "Growl Bass", categoryKey: "bass" },
+  "drift-bass": { label: "Drift Bass", categoryKey: "bass" },
+  "round-bass": { label: "Round Bass", categoryKey: "bass" },
+  "tine-keys": { label: "Tine Keys", categoryKey: "keys" },
+  "tape-keys": { label: "Tape Keys", categoryKey: "keys" },
+  "harp-keys": { label: "Harp Keys", categoryKey: "keys" },
+  "clavi-keys": { label: "Clavi Keys", categoryKey: "keys" },
+};
+
 export const BASE_SOUND_PRESETS = {
   "warm": {
     oscAWave: "sawtooth",
@@ -1011,6 +1153,7 @@ export const BASE_SOUND_PRESETS = {
     transientTone: 1600,
     pitchDropCents: 14,
   },
+  ...EXPANDED_SOUND_PRESETS,
 };
 export const MIXER_CHANNEL_IDS = ["warm", "pluck", "organ", "bass", "glass", "acid", "noisy", "deep"];
 export const DEFAULT_MIDI_CHANNEL_SETTINGS_BY_PRESET_ID = Object.fromEntries(
@@ -1126,12 +1269,15 @@ export const INITIAL_CHANNEL_SCENES = {
     noteIds: ["note-c3", "note-e3", "note-g3", "note-b3"],
   },
 };
-export const PRESET_CATEGORY_ORDER = ["bass", "pads", "keys", "textures"];
+export const PRESET_CATEGORY_ORDER = ["bass", "keys", "leads", "sequences", "pads", "textures", "drones"];
 export const PRESET_CATEGORY_LABELS = {
   bass: "Bass",
-  pads: "Pads",
   keys: "Keys & Plucks",
+  leads: "Leads",
+  sequences: "Sequences",
+  pads: "Pads",
   textures: "Textures",
+  drones: "Drones",
 };
 export const PRESET_METADATA = {
   warm: { label: "Warm Pad", categoryKey: "pads" },
@@ -1155,6 +1301,7 @@ export const PRESET_METADATA = {
   reed: { label: "Reed Lead", categoryKey: "keys" },
   vapor: { label: "Vapor Drift", categoryKey: "textures" },
   swarm: { label: "Swarm", categoryKey: "textures" },
+  ...EXPANDED_PRESET_METADATA,
 };
 export const DEFAULT_PRESET_ID = "warm";
 export const GLOBAL_CONTROL_KEYS = new Set([

@@ -1,3 +1,24 @@
+# Task: Expand Preset Library To 50+ Instruments With New Groups
+
+## Plan
+- [x] Inspect the current preset source of truth in `js/constants.js` and keep the existing preset IDs unchanged.
+- [x] Add enough new instrument presets to bring the total library to at least 50 while preserving 8 fixed mixer channels.
+- [x] Ensure every new preset includes the full instrument parameter surface (including all 4 LFO slots) via a shared complete-preset baseline.
+- [x] Add new preset groups and metadata labels so selectors render categorized optgroups for the expanded library.
+- [ ] Verify with a focused runtime check and `npm run build`.
+
+## Progress Notes
+- Added `COMPLETE_PRESET_PARAMETER_DEFAULTS` + `createCompletePreset(...)` in `js/constants.js` so each newly added preset carries all current instrument params consistently (oscillator, envelopes, filter, distortion, post-filter, delay/reverb sends, tremolo, gate, noise, note behavior, channel-local fields, and `lfo*` / `lfo2*` / `lfo3*` / `lfo4*`).
+- Added 32 new presets in `EXPANDED_SOUND_PRESETS`, increasing the total preset count from 21 to 53 while keeping all existing presets untouched.
+- Added new group keys (`leads`, `sequences`, `drones`) and integrated them into `PRESET_CATEGORY_ORDER` / `PRESET_CATEGORY_LABELS`.
+- Added full metadata entries for all newly added presets in `EXPANDED_PRESET_METADATA` and merged into `PRESET_METADATA`.
+
+## Review
+- `get_errors` reported no blocking errors in `js/constants.js` and `tasks/todo.md` after the preset expansion edits.
+- Focused runtime check and `npm run build` were attempted but skipped in the terminal, so runtime/build verification is still pending.
+
+---
+
 # Task: Move Pause Note Into Arpeggio Buttons And Randomize Its Step Position
 
 ## Plan
