@@ -1,6 +1,6 @@
 name: Deploy
 
-run-name: ${{ github.actor }} is deploying app
+run-name: ${{ github.actor }} is deploying app from ${{ github.event.workflow_run.head_branch }}
 
 on:
   workflow_run:
