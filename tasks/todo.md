@@ -1,3 +1,25 @@
+# Task: Optimize Scheduler CPU Usage
+
+## Plan
+- [x] Profile the transport/audio scheduling hot path in `js/audio-engine.js` and identify avoidable per-step allocations/logging.
+- [x] Remove avoidable scheduler overhead (hot-path console logging and repeated playable-layer array filtering).
+- [x] Cache LFO modulation aggregation per note so all targeted parameters reuse one modulation context instead of recomputing repeatedly.
+- [x] Run focused regressions plus `npm run build` and record results.
+
+## Progress Notes
+- Removed the per-step `console.log("Probability for ...")` from `scheduleInstrumentStackNote(...)` so normal playback no longer floods the console on every scheduled note.
+- Replaced `getPlayablePresetIds().length` calls in scheduler loops with `getPlayingActiveLayerCount()` to avoid frequent array filtering allocations during transport scheduling.
+- Reworked the LFO hot path so `scheduleNote(...)` builds one `buildLfoModulationContext(...)` per note and reuses it for all modulated targets (`channelVolume`, `detuneSpread`, `subLevel`, envelopes, filter, delay send, and pitch shift).
+- Reused that same LFO context inside `scheduleInstrumentStackNote(...)` for MIDI note transposition and audio frequency scheduling, preventing duplicate per-note LFO recomputation.
+
+## Review
+- `node --experimental-default-type=module tasks/multi-lfo-independent-test.mjs` passed.
+- `node --experimental-default-type=module tasks/midi-note-routing-test.mjs` passed.
+- `node --experimental-default-type=module tasks/global-transport-controls-test.mjs` passed.
+- `npm run build` completed successfully after the CPU optimization changes.
+
+---
+
 # Task: Expand Preset Library To 50+ Instruments With New Groups
 
 ## Plan
