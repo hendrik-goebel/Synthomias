@@ -39,7 +39,7 @@ import {
 import { sendMidiNoteForPreset } from "./midi-engine.js";
 import { getNoteProbabilitiesForInstrument } from "./note-probabilities.js";
 import { getInstrumentPattern, getInstrumentPatternNoteIds } from "./patterns.js";
-import { getInstrumentParams, getPlayablePresetIds } from "./presets.js";
+import { getInstrumentParams } from "./presets.js";
 import { state } from "./state.js";
 import { clamp, randomCentered } from "./utils.js";
 
@@ -75,32 +75,57 @@ function getLfoTargetOption(targetIndex = 0) {
   return LFO_TARGET_OPTIONS[normalizedIndex];
 }
 
-function getLfoModulationsAtTime(time, voiceParams = {}) {
-  return LFO_SLOT_CONFIGS
-    .map(({ targetKey, rateKey, depthKey, slot }) => {
-      const targetOption = getLfoTargetOption(voiceParams[targetKey]);
-      if (!targetOption.key) {
-        return null;
-      }
+function buildLfoModulationContext(time, voiceParams = {}) {
+  const modulationTotalsByKey = Object.create(null);
+  const targetOptionsByKey = Object.create(null);
+  let firstTargetKey = null;
 
-      const rate = clampLfoRateHz(voiceParams[rateKey] ?? 1.2);
-      const depth = clamp(voiceParams[depthKey] ?? 0, 0, 1);
-      const phase = time * Math.PI * 2 * rate;
-      return {
-        slot,
-        key: targetOption.key,
-        amount: Math.sin(phase) * depth,
-        targetOption,
-      };
-    })
-    .filter(Boolean);
+  for (let index = 0; index < LFO_SLOT_CONFIGS.length; index += 1) {
+    const { targetKey, rateKey, depthKey } = LFO_SLOT_CONFIGS[index];
+    const targetOption = getLfoTargetOption(voiceParams[targetKey]);
+    const targetOptionKey = targetOption.key;
+    if (!targetOptionKey) {
+      continue;
+    }
+
+    if (firstTargetKey === null) {
+      firstTargetKey = targetOptionKey;
+    }
+
+    const modulationAmount = Number.parseFloat(targetOption.modulationAmount);
+    if (!Number.isFinite(modulationAmount) || modulationAmount <= 0) {
+      continue;
+    }
+
+    const depth = clamp(voiceParams[depthKey] ?? 0, 0, 1);
+    if (depth <= 0) {
+      continue;
+    }
+
+    const rate = clampLfoRateHz(voiceParams[rateKey] ?? 1.2);
+    const phase = time * Math.PI * 2 * rate;
+    const amount = Math.sin(phase) * depth * modulationAmount;
+
+    if (Math.abs(amount) <= 0.000001) {
+      continue;
+    }
+
+    targetOptionsByKey[targetOptionKey] = targetOption;
+    modulationTotalsByKey[targetOptionKey] = (modulationTotalsByKey[targetOptionKey] ?? 0) + amount;
+  }
+
+  return {
+    firstTargetKey,
+    targetOptionsByKey,
+    modulationTotalsByKey,
+  };
 }
 
-function getLfoTargetedValue(baseValue, time, fallbackTargetKey = null, voiceParams = {}) {
-  const lfoModulations = getLfoModulationsAtTime(time, voiceParams);
-  const fallbackModulation = lfoModulations[0] || { key: null };
-  const targetKey = fallbackTargetKey ?? fallbackModulation.key;
-  const targetOption = LFO_TARGET_OPTIONS.find((option) => option.key === targetKey);
+function getLfoTargetedValue(baseValue, time, fallbackTargetKey = null, voiceParams = {}, lfoContext = null) {
+  const activeLfoContext = lfoContext ?? buildLfoModulationContext(time, voiceParams);
+  const targetKey = fallbackTargetKey ?? activeLfoContext.firstTargetKey;
+  const targetOption = activeLfoContext.targetOptionsByKey[targetKey]
+    || LFO_TARGET_OPTIONS.find((option) => option.key === targetKey);
   if (!targetOption) {
     return baseValue;
   }
@@ -110,16 +135,7 @@ function getLfoTargetedValue(baseValue, time, fallbackTargetKey = null, voicePar
     return baseValue;
   }
 
-  const totalModulation = lfoModulations
-    .filter((lfoModulation) => lfoModulation.key === targetKey)
-    .reduce((sum, lfoModulation) => {
-      const modulationAmount = Number.parseFloat(lfoModulation.targetOption.modulationAmount);
-      if (!Number.isFinite(modulationAmount) || modulationAmount <= 0) {
-        return sum;
-      }
-
-      return sum + (lfoModulation.amount * modulationAmount);
-    }, 0);
+  const totalModulation = activeLfoContext.modulationTotalsByKey[targetKey] ?? 0;
 
   if (Math.abs(totalModulation) <= 0.000001) {
     return numericBaseValue;
@@ -132,32 +148,32 @@ function getLfoTargetedValue(baseValue, time, fallbackTargetKey = null, voicePar
   );
 }
 
-function getPitchShiftSemitones(voiceParams, time = 0) {
+function getPitchShiftSemitones(voiceParams, time = 0, lfoContext = null) {
   const basePitchShiftSemitones = clampPitchShiftSemitones(voiceParams?.pitchShiftSemitones ?? 0, {
     continuous: isContinuousPitchShiftEnabled(voiceParams?.pitchShiftContinuous),
   });
   return clampPitchShiftSemitones(
-    getLfoTargetedValue(basePitchShiftSemitones, time, "pitchShiftSemitones", voiceParams),
+    getLfoTargetedValue(basePitchShiftSemitones, time, "pitchShiftSemitones", voiceParams, lfoContext),
     { continuous: true },
   );
 }
 
-function getPitchShiftedFrequency(frequency, voiceParams, time) {
+function getPitchShiftedFrequency(frequency, voiceParams, time, lfoContext = null) {
   const numericFrequency = Number.parseFloat(frequency);
   if (!Number.isFinite(numericFrequency) || numericFrequency <= 0) {
     return numericFrequency;
   }
 
-  return numericFrequency * Math.pow(2, getPitchShiftSemitones(voiceParams, time) / 12);
+  return numericFrequency * Math.pow(2, getPitchShiftSemitones(voiceParams, time, lfoContext) / 12);
 }
 
-function getTransposedMidiNoteNumber(midiNoteNumber, voiceParams, time) {
+function getTransposedMidiNoteNumber(midiNoteNumber, voiceParams, time, lfoContext = null) {
   const numericMidiNoteNumber = Number.parseInt(midiNoteNumber, 10);
   if (!Number.isInteger(numericMidiNoteNumber)) {
     return null;
   }
 
-  const shiftedMidiNoteNumber = Math.round(numericMidiNoteNumber + getPitchShiftSemitones(voiceParams, time));
+  const shiftedMidiNoteNumber = Math.round(numericMidiNoteNumber + getPitchShiftSemitones(voiceParams, time, lfoContext));
   if (shiftedMidiNoteNumber < 0 || shiftedMidiNoteNumber > 127) {
     return null;
   }
@@ -333,17 +349,19 @@ export function scheduleNote(
   presetId,
   noteLength = 8,
   velocity = MIDI_VELOCITY_MAX,
+  lfoContextOverride = null,
 ) {
   const ctx = state.audioContext;
+  const lfoContext = lfoContextOverride ?? buildLfoModulationContext(time, voiceParams);
   const lfoVoiceParams = {
     ...voiceParams,
-    channelVolume: getLfoTargetedValue(voiceParams.channelVolume ?? 1, time, "channelVolume", voiceParams),
-    detuneSpread: getLfoTargetedValue(voiceParams.detuneSpread ?? 0, time, "detuneSpread", voiceParams),
-    subLevel: getLfoTargetedValue(voiceParams.subLevel ?? 0.55, time, "subLevel", voiceParams),
-    distortionDrive: getLfoTargetedValue(voiceParams.distortionDrive ?? 0, time, "distortionDrive", voiceParams),
-    distortionTone: getLfoTargetedValue(voiceParams.distortionTone ?? 4500, time, "distortionTone", voiceParams),
+    channelVolume: getLfoTargetedValue(voiceParams.channelVolume ?? 1, time, "channelVolume", voiceParams, lfoContext),
+    detuneSpread: getLfoTargetedValue(voiceParams.detuneSpread ?? 0, time, "detuneSpread", voiceParams, lfoContext),
+    subLevel: getLfoTargetedValue(voiceParams.subLevel ?? 0.55, time, "subLevel", voiceParams, lfoContext),
+    distortionDrive: getLfoTargetedValue(voiceParams.distortionDrive ?? 0, time, "distortionDrive", voiceParams, lfoContext),
+    distortionTone: getLfoTargetedValue(voiceParams.distortionTone ?? 4500, time, "distortionTone", voiceParams, lfoContext),
   };
-  const pitchedFrequency = getPitchShiftedFrequency(frequency, voiceParams, time);
+  const pitchedFrequency = getPitchShiftedFrequency(frequency, voiceParams, time, lfoContext);
   if (!Number.isFinite(pitchedFrequency) || pitchedFrequency <= 0) {
     return;
   }
@@ -457,17 +475,17 @@ export function scheduleNote(
     240,
   );
   const attackTime = clamp(
-    getLfoTargetedValue(voiceParams.attack, time, "attack", voiceParams) + randomCentered(HUMANIZE.attackSeconds),
+    getLfoTargetedValue(voiceParams.attack, time, "attack", voiceParams, lfoContext) + randomCentered(HUMANIZE.attackSeconds),
     ENVELOPE_ATTACK_MIN_SECONDS,
     ENVELOPE_ATTACK_MAX_SECONDS,
   );
   const decayTime = clamp(
-    getLfoTargetedValue(voiceParams.decay, time, "decay", voiceParams) + randomCentered(HUMANIZE.decaySeconds),
+    getLfoTargetedValue(voiceParams.decay, time, "decay", voiceParams, lfoContext) + randomCentered(HUMANIZE.decaySeconds),
     ENVELOPE_DECAY_MIN_SECONDS,
     ENVELOPE_DECAY_MAX_SECONDS,
   );
   const releaseTime = clamp(
-    getLfoTargetedValue(voiceParams.release, time, "release", voiceParams),
+    getLfoTargetedValue(voiceParams.release, time, "release", voiceParams, lfoContext),
     ENVELOPE_RELEASE_MIN_SECONDS,
     ENVELOPE_RELEASE_MAX_SECONDS,
   );
@@ -493,20 +511,20 @@ export function scheduleNote(
   const peakGain = basePeakGain;
   const sustainGain = baseSustainGain;
   let cutoffWithVariation = clamp(
-    (Math.min(8000, getLfoTargetedValue(voiceParams.filterCutoff, time, "filterCutoff", voiceParams) + pitchedFrequency * filterTracking)) *
+    (Math.min(8000, getLfoTargetedValue(voiceParams.filterCutoff, time, "filterCutoff", voiceParams, lfoContext) + pitchedFrequency * filterTracking)) *
       (1 - warmAmount * 0.35 + coldAmount * 0.55) *
       (1 + randomCentered(HUMANIZE.cutoffAmount)),
     250,
     8000,
   );
   let filterQValue = clamp(
-    getLfoTargetedValue(voiceParams.filterQ, time, "filterQ", voiceParams) * (1 - warmAmount * 0.12 + coldAmount * 0.18),
+    getLfoTargetedValue(voiceParams.filterQ, time, "filterQ", voiceParams, lfoContext) * (1 - warmAmount * 0.12 + coldAmount * 0.18),
     0.2,
     12,
   );
   const tapeDelaySendValue = Number(state.synthParams.tapeDelayEnabled)
     ? clamp(
-      getLfoTargetedValue(voiceParams.delaySend, time, "delaySend", voiceParams) * (1 + randomCentered(HUMANIZE.fxSendAmount)),
+      getLfoTargetedValue(voiceParams.delaySend, time, "delaySend", voiceParams, lfoContext) * (1 + randomCentered(HUMANIZE.fxSendAmount)),
       0,
       TAPE_DELAY_SEND_MAX,
     )
@@ -777,7 +795,6 @@ export function scheduleInstrumentStackNote(time, layerCount, stepIndex = state.
       const noteName = getNoteProbabilityKeyFromNoteId(noteId);
       const noteProbabilities = getNoteProbabilitiesForInstrument(presetId);
       const probability = noteName && noteProbabilities[noteName] !== undefined ? noteProbabilities[noteName] : 1;
-      console.log("Probability for", noteId, "is", probability);
       if (probability >= 1) {
         shouldPlay = true;
       } else if (probability <= 0) {
@@ -788,8 +805,9 @@ export function scheduleInstrumentStackNote(time, layerCount, stepIndex = state.
     }
 
     if (shouldPlay) {
+      const lfoContext = buildLfoModulationContext(time, voiceParams);
       const midiNoteNumber = noteId ? getMidiNoteNumberFromNoteId(noteId) : null;
-      const shiftedMidiNoteNumber = getTransposedMidiNoteNumber(midiNoteNumber, voiceParams, time);
+      const shiftedMidiNoteNumber = getTransposedMidiNoteNumber(midiNoteNumber, voiceParams, time, lfoContext);
       if (Number.isInteger(shiftedMidiNoteNumber)) {
         sendMidiNoteForPreset(presetId, shiftedMidiNoteNumber, {
           timeSeconds: time,
@@ -807,9 +825,24 @@ export function scheduleInstrumentStackNote(time, layerCount, stepIndex = state.
         presetId,
         noteLength,
         MIDI_VELOCITY_MAX,
+        lfoContext,
       );
     }
   }
+}
+
+function getPlayingActiveLayerCount() {
+  const activePresetIds = state.activePresetIds;
+  const playingPresetIds = state.playingPresetIds;
+  let count = 0;
+
+  for (let i = 0; i < activePresetIds.length; i += 1) {
+    if (playingPresetIds.has(activePresetIds[i])) {
+      count += 1;
+    }
+  }
+
+  return count;
 }
 
 export function scheduleCurrentTransportStep(time = state.audioContext?.currentTime + 0.005) {
@@ -817,7 +850,7 @@ export function scheduleCurrentTransportStep(time = state.audioContext?.currentT
     return false;
   }
 
-  const layerCount = getPlayablePresetIds().length;
+  const layerCount = getPlayingActiveLayerCount();
   if (layerCount === 0) {
     return false;
   }
@@ -859,7 +892,10 @@ export function scheduleAhead() {
     return;
   }
 
-  const layerCount = getPlayablePresetIds().length;
+  const layerCount = getPlayingActiveLayerCount();
+  if (layerCount === 0) {
+    return;
+  }
   const lookaheadEndTime = state.audioContext.currentTime + lookaheadSeconds;
   const stepDuration = getStepDuration();
   let nextNoteTime = state.nextNoteTime;

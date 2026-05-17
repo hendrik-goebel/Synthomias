@@ -106,3 +106,6 @@
 - When cross-tab sync also needs UI/app transport parity, broadcast explicit app-level `transport-start` / `transport-stop` events in addition to MIDI clock events, and mark remote-origin transport handling so follower tabs do not re-emit hardware MIDI start/stop.
 - When a browser-tab MIDI `Send` mode is meant to sync other tabs, do not gate the master clock scheduler on a physical MIDI output port; treat cross-tab relay itself as a valid clock destination, otherwise the UI can stay stuck on “Ready to send clock” and no sibling tab will ever receive pulses.
 - When a generated arpeggio contains parallel representations (note IDs for MIDI and frequencies for audio), compute a single random rest insertion index per rebuild and reuse it for both arrays; separate random draws can desync what is heard vs what is sent.
+
+- For real-time scheduler hot paths, remove debug logging and compute modulation aggregates once per note-step (then reuse across MIDI and audio branches); repeated map/filter/reduce work in the same tick adds avoidable CPU load.
+
