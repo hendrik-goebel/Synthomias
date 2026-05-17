@@ -1,26 +1,21 @@
-name: Build and deploy
-
-run-name: ${{ github.actor }} is building app on ${{ github.ref }}
+name: Build
+run-name: ${{ github.actor }} is building app from ${{ github.event.workflow_run.head_branch }}
 
 on:
-  pull_request:
-    types:
-      - closed
+  push:
     branches:
-      - release/**
+      - '**'
 
 jobs:
   build:
-    if: github.event.pull_request.merged == true
-
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v5
         with:
           node-version: 21
           cache: npm
@@ -31,13 +26,8 @@ jobs:
       - name: Build webpack app
         run: npm run build
 
-      - name: Deploy to server
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-
-          rsync -avz --delete \
-            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
-            dist/ \
-            ${{ secrets.SERVER_SSH_USER }}@${{ secrets.SERVER_SSH_HOST }}:${{ secrets.SERVER_TARGET_PATH }}
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: webpack-build
+          path: dist/
