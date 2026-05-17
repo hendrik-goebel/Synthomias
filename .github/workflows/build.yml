@@ -1,5 +1,5 @@
 name: Build
-run-name: ${{ github.actor }} is building app from ${{ github.event.workflow_run.head_branch }}
+run-name: ${{ github.actor }} is building app
 
 on:
   push:
